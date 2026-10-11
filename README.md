@@ -1,5 +1,8 @@
 # sdcpp-studio
 
+[![CI](https://github.com/abassign/sdcpp-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/abassign/sdcpp-studio/actions/workflows/ci.yml)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-blue.svg)](LICENSE)
+
 A local, private **image-generation studio** built on
 [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp).
 
