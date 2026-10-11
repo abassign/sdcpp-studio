@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python syntax (compile only, no deps)
+        run: |
+          set -e
+          files=$(git ls-files '*.py' | grep -v '^libs/' || true)
+          python -m py_compile $files
+          echo "compiled $(echo "$files" | wc -l) python files"
+
+      - name: YAML - models registry
+        run: |
+          pip install --quiet pyyaml
+          python - <<'PY'
+          import yaml
+          d = yaml.safe_load(open("models.yaml"))
+          assert "components" in d and "presets" in d, "models.yaml missing keys"
+          print("presets:", ", ".join(d["presets"]))
+          PY
+
+      - name: Shell - go.sh
+        run: bash -n go.sh && echo "go.sh OK"
+
+      - name: JavaScript syntax
+        run: |
+          set -e
+          for f in static/js/*.js; do node --check "$f"; done
+          echo "checked $(ls static/js/*.js | wc -l) js files"
+
+      - name: Check no secrets are tracked
+        run: |
+          if git ls-files | grep -E '(^|/)(secrets\.json|\.env)$'; then
+            echo "::error::a secret file is tracked"; exit 1
+          fi
+          echo "no tracked secrets"
