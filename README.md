@@ -62,8 +62,17 @@ before use/redistribution.
 
 ## License
 
-Our code is **MIT** (see [LICENSE](LICENSE)). Model weights and the
-`stable-diffusion.cpp` / `llama.cpp` engines keep their own licenses.
+Our code is released under the **PolyForm Noncommercial License 1.0.0**
+(see [LICENSE](LICENSE)):
+
+- ✅ free to use, study, modify and share for **noncommercial purposes**
+  (personal, hobby, research, education, nonprofits, ...)
+- ❌ **commercial use is not permitted**
+
+> Note: a noncommercial license is **not** an OSI "open source" license - that
+> is intentional. The `stable-diffusion.cpp` and `llama.cpp` engines are **MIT**,
+> and each **model weight** keeps its own license (FLUX, Ideogram, Z-Image, Qwen,
+> SD/SDXL, ...). See [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## Docs
 
