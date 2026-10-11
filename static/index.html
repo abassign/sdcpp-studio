@@ -57,7 +57,7 @@
             <button class="nav-btn" onclick="switchTab('agent', this)">🪄 Agent Refine</button>
         </div>
         <select id="translate-model-select" class="input-text"
-            title="Modello per la traduzione IT→EN (🔓 = uncensored consigliato)"
+            title="Translation model (IT→EN) - 🔓 uncensored recommended"
             style="max-width:240px; font-size:11px; margin-right:8px;">
             <option value="">🌐 Trad: Auto (uncensored)</option>
         </select>
@@ -114,17 +114,17 @@
                     <!-- 3-4. SLOT ACTIONS on a single row: Add / Clear / Auto -->
                     <div class="slot-actions-grid">
                         <button id="btn-add-slot" class="btn add-slot-btn hidden" onclick="addImageSlot('ref')"
-                            title="Aggiungi un'altra immagine (es. altra reference, face, mask)">
+                            title="Add another image (e.g. another reference, face, mask)">
                             ➕ Add Image
                         </button>
                         <button id="btn-clear-slots" class="btn add-slot-btn hidden" onclick="clearAllImageSlots()"
-                            title="Rimuovi tutte le immagini da tutti gli slot e torna a 2 slot vuoti"
+                            title="Remove all images from every slot and return to 2 empty slots"
                             style="border-color:#a33; color:#ff9a9a; background:linear-gradient(135deg,#3a1f1f 0%,#2a1515 100%);">
-                            🗑️ Svuota
+                            🗑️ Clear
                         </button>
                         <button id="btn-auto-role" class="btn btn-sm hidden" onclick="autoAssignRoles()"
                             style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white;"
-                            title="Analizza il prompt per suggerire i ruoli migliori per gli slot">
+                            title="Analyze the prompt to suggest the best roles for the slots">
                             ✨ Auto
                         </button>
                     </div>
@@ -220,7 +220,7 @@
                         <label for="prompt">Prompt:</label>
                         <button type="button" class="btn-sm" id="btn-tr-prompt"
                             onclick="translateField('prompt','btn-tr-prompt')"
-                            title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                            title="Translate to English with the local model (IT→EN)">🌐 EN</button>
                     </div>
                     <textarea id="prompt" rows="6" placeholder="Describe your imagination here..."></textarea>
                 </div>
@@ -232,7 +232,7 @@
                         <div style="display:flex; gap:6px; align-items:center;">
                             <button type="button" class="btn-sm" id="btn-tr-neg"
                                 onclick="translateField('negative-prompt','btn-tr-neg')"
-                                title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                                title="Translate to English with the local model (IT→EN)">🌐 EN</button>
                             <button type="button" class="btn-sm" onclick="toggleNegativePrompt()" id="negative-prompt-toggle" style="padding: 2px 8px; font-size: 11px;">▼ Show</button>
                         </div>
                     </div>
@@ -268,7 +268,7 @@
                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
                             <button type="button" class="btn-sm" id="btn-tr-chat"
                                 onclick="translateField('i2t-chat-input','btn-tr-chat')"
-                                title="Traduci in inglese con il modello locale (IT→EN)"
+                                title="Translate to English with the local model (IT→EN)"
                                 style="background:#1a3a5c; color:#e5e7eb; padding:8px 10px; border:none; border-radius:6px; cursor:pointer;">🌐 EN</button>
                             <button id="btn-i2t-to-prompt" class="btn"
                                     style="flex: 3; background: #4a2d6a; color: white; padding: 8px 12px;
@@ -607,12 +607,12 @@
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-sm" id="btn-tr-i2t-pos"
                                     onclick="translateField('i2t-positive-prompt','btn-tr-i2t-pos')"
-                                    title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                                    title="Translate to English with the local model (IT→EN)">🌐 EN</button>
                                 <button class="btn-sm" onclick="copyToClipboard('i2t-positive-prompt', this)">📋 Copy</button>
                                 <button class="btn-sm" onclick="sendPromptTo('t2i', 'i2t-positive-prompt')">🖊️ To T2I</button>
                                 <button class="btn-sm" onclick="sendPromptTo('i2i', 'i2t-positive-prompt')">🎨 To I2I</button>
                                 <button class="btn-sm" onclick="sendPromptToARF('i2t-positive-prompt')"
-                                    title="Invia il prompt al Goal di 🪄 Agent Refine + l'init image come riferimento">🪄 ARF</button>
+                                    title="Send the prompt to the 🪄 Agent Refine Goal + the init image as reference">🪄 ARF</button>
                             </div>
                         </div>
                         <div id="i2t-positive-prompt" class="text-box answer"
@@ -625,7 +625,7 @@
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-sm" id="btn-tr-i2t-neg"
                                     onclick="translateField('i2t-negative-prompt','btn-tr-i2t-neg')"
-                                    title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                                    title="Translate to English with the local model (IT→EN)">🌐 EN</button>
                                 <button class="btn-sm" onclick="copyToClipboard('i2t-negative-prompt', this)">📋 Copy</button>
                                 <button class="btn-sm" onclick="sendNegativePromptTo('t2i', 'i2t-negative-prompt')">🖊️ To T2I</button>
                                 <button class="btn-sm" onclick="sendNegativePromptTo('i2i', 'i2t-negative-prompt')">🎨 To I2I</button>
@@ -732,8 +732,8 @@
                             placeholder='e.g. "change the boy into a girl, keep the same pose, clothes and background"'></textarea>
                         <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
                             <button id="btn-goal-translate" class="btn btn-sm" onclick="translateAgentGoal()"
-                                title="Traduci il goal in inglese con il modello locale (IT→EN)"
-                                style="font-size:11px;">🌐 Traduci in English</button>
+                                title="Translate the goal to English with the local model (IT→EN)"
+                                style="font-size:11px;">🌐 Translate to English</button>
                             <span id="goal-translate-status" style="font-size:11px; color:#888;"></span>
                         </div>
                     </div>
@@ -745,11 +745,11 @@
                     <input type="hidden" id="agent-image-path">
 
                     <div class="group">
-                        <label for="agent-interpreter">🔎 Interprete (I2T) — opzionale:</label>
+                        <label for="agent-interpreter">🔎 Interpreter (I2T) — optional:</label>
                         <select id="agent-interpreter" class="input-text full-width" style="font-size:11px;">
-                            <option value="">Auto (nessuno — usa il Critic)</option>
+                            <option value="">Auto (none — uses the Critic)</option>
                         </select>
-                        <div style="font-size:10px; color:#888; margin-top:3px;">Un VLM <b>separato</b> che descrive <b>una volta</b> l'Init Image (per specializzare: descrittore uncensored + critico ragionatore). Il Critic <b>continua a vedere</b> le immagini.</div>
+                        <div style="font-size:10px; color:#888; margin-top:3px;">A <b>separate</b> VLM that describes the Init Image <b>once</b> (to specialise: uncensored describer + reasoning critic). The Critic <b>still sees</b> the images.</div>
                     </div>
 
                     <div class="group">
@@ -773,29 +773,29 @@
                         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                             <label class="checkbox-container cap-toggle" id="agent-use-image-wrap" style="margin:0;"
                                    title="Send the reference image to the VLM critic so it can see what it judges.">
-                                🖼️ Interpreta immagine
+                                🖼️ Interpret image
                                 <input type="checkbox" id="agent-use-image" checked>
                                 <span class="checkmark"></span>
                             </label>
                             <label class="checkbox-container cap-toggle" id="agent-edit-ref-wrap" style="margin:0;"
                                    title="Pass the reference image to the generator so every iteration is a real EDIT (sd.cpp -r) instead of a text-to-image regeneration.">
-                                ✏️ Edit da riferimento
+                                ✏️ Edit from reference
                                 <input type="checkbox" id="agent-edit-ref" checked>
                                 <span class="checkmark"></span>
                             </label>
                             <select id="agent-edit-anchor" class="input-text"
                                     style="font-size:11px; max-width:230px;"
                                     title="Which image to edit from: the ORIGINAL (no drift), the PREVIOUS iteration (chain), or both (hybrid, default).">
-                                <option value="hybrid" selected>Ibrida (originale + precedente)</option>
-                                <option value="original">Originale (nessun drift)</option>
-                                <option value="chain">Catena (dalla precedente)</option>
+                                <option value="hybrid" selected>Hybrid (original + previous)</option>
+                                <option value="original">Original (no drift)</option>
+                                <option value="chain">Chain (from previous)</option>
                             </select>
                         </div>
                         <div id="agent-cap-warning" class="hidden"
                              style="font-size:11px; color:#ffcc66; background:#3a2f12; border:1px solid #6a5a1a;
                                     border-radius:4px; padding:5px 8px; margin-top:6px; line-height:1.45;"></div>
                         <div style="font-size:10px; color:#888; margin-top:3px;">
-                            Interpreta = il critico VLM legge l'immagine. Edit = il generatore la usa come riferimento (<b>-r</b>).
+                            Interpret = the VLM critic reads the image. Edit = the generator uses it as a reference (<b>-r</b>).
                         </div>
                     </div>
 
