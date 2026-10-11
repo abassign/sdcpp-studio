@@ -1,14 +1,14 @@
-// mask_editor.js — MVP inpainting mask painter (contextual to the I2I "Mask" slot).
+// mask_editor.js - inpainting mask painter (contextual to the I2I "Mask" slot).
 // =============================================================================
-// Apre un editor a tutto schermo con l'immagine Init (slot 1) come sfondo; l'utente
-// dipinge in rosso le aree da MODIFICARE. Al salvataggio produce un PNG bianco/nero
-// (bianco = modifica, nero = preserva) e lo assegna allo slot con ruolo 🎭 Mask.
-// sd.cpp lo consuma con --mask per i modelli inpaint-capable (FLUX.1 / FLUX.2 / FLUX-FILL).
+// Opens a full-screen editor with the Init image (slot 1) as background; the user
+// paints in red the areas to MODIFY. On save it produces a black/white PNG
+// (white = modify, black = preserve) and assigns it to the slot with role 🎭 Mask.
+// sd.cpp consumes it with --mask for inpaint-capable models (FLUX.1 / FLUX.2 / FLUX-FILL).
 // =============================================================================
 (function () {
     'use strict';
 
-    const OVERLAY = '#ff4040';          // colore PIENO: la trasparenza è data dal CSS del canvas
+    const OVERLAY = '#ff4040';          // SOLID color: transparency comes from the canvas CSS
     const ALPHA_THRESHOLD = 20;
 
     let overlayEl = null;
@@ -19,8 +19,8 @@
     let brushSize = 40;
     let erase = false;
     let overlayOpacity = 0.45;
-    let dilatePx = 10;      // dilatazione (crescita) attorno all'oggetto
-    let featherPx = 6;      // sfumatura dei bordi
+    let dilatePx = 10;      // dilation (growth) around the object
+    let featherPx = 6;      // edge feathering
     let previewCanvas = null;
     let lassoCanvas = null, lassoCtx = null;
     let lassoPoints = [];
@@ -115,16 +115,16 @@
         const img = maskCtx.getImageData(0, 0, naturalW, naturalH);
         const d = img.data;
         for (let i = 0; i < d.length; i += 4) {
-            if (d[i + 3] > ALPHA_THRESHOLD) {           // era dipinto -> cancella
+            if (d[i + 3] > ALPHA_THRESHOLD) {           // was painted -> clear
                 d[i] = 0; d[i + 1] = 0; d[i + 2] = 0; d[i + 3] = 0;
-            } else {                                    // era vuoto -> dipingi
+            } else {                                    // was empty -> paint
                 d[i] = 255; d[i + 1] = 64; d[i + 2] = 64; d[i + 3] = 255;
             }
         }
         maskCtx.putImageData(img, 0, 0);
     }
 
-    // Contorno live del lazo (linea tratteggiata gialla)
+    // Live lasso outline (yellow dashed line)
     function drawLassoPreview() {
         if (!lassoCtx) return;
         lassoCtx.clearRect(0, 0, naturalW, naturalH);
@@ -141,7 +141,7 @@
         lassoCtx.restore();
     }
 
-    // Riempie il poligono del lazo nella maschera
+    // Fill the lasso polygon into the mask
     function fillLasso(pts) {
         if (!pts || pts.length < 3) return;
         maskCtx.save();
@@ -155,10 +155,10 @@
         maskCtx.restore();
     }
 
-    // Forma della maschera: bianco opaco su sfondo TRASPARENTE, gia'
-    // dilatata (crescita) e sfumata (bordi morbidi).
+    // Mask shape: opaque white on a TRANSPARENT background, already
+    // dilated (grown) and feathered (soft edges).
     function buildMaskShape() {
-        // 1. maschera dura: bianco dove dipinto, trasparente altrove
+        // 1. hard mask: white where painted, transparent elsewhere
         const hard = document.createElement('canvas');
         hard.width = naturalW; hard.height = naturalH;
         const hctx = hard.getContext('2d');
@@ -171,7 +171,7 @@
         }
         hctx.putImageData(hd, 0, 0);
 
-        // 2. dilatazione: unione di copie offset in un anello -> cresce ~dilatePx
+        // 2. dilation: union of offset copies in a ring -> grows ~dilatePx
         const grown = document.createElement('canvas');
         grown.width = naturalW; grown.height = naturalH;
         const gctx = grown.getContext('2d');
@@ -184,7 +184,7 @@
         }
         gctx.drawImage(hard, 0, 0);
 
-        // 3. sfumatura dei bordi
+        // 3. edge feathering
         const shape = document.createElement('canvas');
         shape.width = naturalW; shape.height = naturalH;
         const sctx = shape.getContext('2d');
@@ -194,7 +194,7 @@
         return shape;
     }
 
-    // Maschera finale salvata: bianco/grigio su sfondo nero.
+    // Final mask saved: white/gray on black background.
     function buildFinalMaskCanvas() {
         const shape = buildMaskShape();
         const out = document.createElement('canvas');
@@ -206,7 +206,7 @@
         return out;
     }
 
-    // Anteprima live della zona dilatata/sfumata (oro) sopra il disegno (rosso).
+    // Live preview of the dilated/feathered area (gold) over the paint (red).
     function updatePreview() {
         if (!previewCanvas) return;
         const pctx = previewCanvas.getContext('2d');
@@ -226,7 +226,7 @@
         const fname = 'mask_' + (targetSlotId || 0) + '_' + Date.now() + '.png';
         const previewData = out.toDataURL('image/png');
         out.toBlob(async (blob) => {
-            if (!blob) { alert('Impossibile generare la maschera.'); return; }
+            if (!blob) { alert('Could not generate the mask.'); return; }
             const file = new File([blob], fname, { type: 'image/png' });
             const fd = new FormData();
             fd.append('file', file);
@@ -244,7 +244,7 @@
                 }
                 closeEditor();
             } catch (e) {
-                alert('Salvataggio maschera fallito: ' + e.message);
+                alert('Mask save failed: ' + e.message);
             }
         }, 'image/png');
     }
@@ -253,7 +253,7 @@
         injectStyles();
         naturalW = img.naturalWidth || img.width;
         naturalH = img.naturalHeight || img.height;
-        if (!naturalW || !naturalH) { alert('Immagine Init non valida.'); return; }
+        if (!naturalW || !naturalH) { alert('Invalid Init image.'); return; }
 
         const maxW = Math.min(window.innerWidth * 0.9, 1100);
         const maxH = window.innerHeight * 0.68;
@@ -265,17 +265,17 @@
         overlayEl.id = 'mask-editor-overlay';
         overlayEl.innerHTML = `
           <div class="me-box">
-            <div class="me-title">✏️ Editor maschera — dipingi le aree da MODIFICARE</div>
+            <div class="me-title">✏️ Mask editor — paint the areas to MODIFY</div>
             <div class="me-toolbar">
-              <button id="me-brush" class="active" type="button">🖌 Pennello</button>
-              <button id="me-eraser" type="button">🩹 Gomma</button>
-              <button id="me-lasso" type="button">🪢 Lazo (riempi)</button>
-              <label class="me-hint">Dimensione <input id="me-size" type="range" min="4" max="200" value="40"></label>
-              <label class="me-hint">Opacità <input id="me-opacity" type="range" min="10" max="90" value="45"></label>
-              <label class="me-hint">Dilatazione <input id="me-dilate" type="range" min="0" max="80" value="10"></label>
-              <label class="me-hint">Sfumatura <input id="me-feather" type="range" min="0" max="60" value="6"></label>
-              <button id="me-invert" type="button">◐ Inverti</button>
-              <button id="me-clear" type="button">✕ Pulisci</button>
+              <button id="me-brush" class="active" type="button">🖌 Brush</button>
+              <button id="me-eraser" type="button">🩹 Eraser</button>
+              <button id="me-lasso" type="button">🪢 Lasso (fill)</button>
+              <label class="me-hint">Size <input id="me-size" type="range" min="4" max="200" value="40"></label>
+              <label class="me-hint">Opacity <input id="me-opacity" type="range" min="10" max="90" value="45"></label>
+              <label class="me-hint">Dilation <input id="me-dilate" type="range" min="0" max="80" value="10"></label>
+              <label class="me-hint">Feather <input id="me-feather" type="range" min="0" max="60" value="6"></label>
+              <button id="me-invert" type="button">◐ Invert</button>
+              <button id="me-clear" type="button">✕ Clear</button>
             </div>
             <div class="me-stage">
               <div class="me-canvaswrap" style="width:${dispW}px;height:${dispH}px;">
@@ -285,10 +285,10 @@
                 <canvas class="me-lasso" width="${naturalW}" height="${naturalH}" style="width:${dispW}px;height:${dispH}px;pointer-events:none;"></canvas>
               </div>
             </div>
-            <div class="me-hint">Rosso = area da modificare · <b style="color:#ffc400">oro = dilatazione</b> (crescita attorno all'oggetto) · nero = area da preservare.<br>🖌 Pennello/Gomma disegnano · <b>🪢 Lazo</b>: traccia un contorno e rilascia per riempirlo. Maschera ${naturalW}×${naturalH} px. Nel prompt descrivi il <b>risultato</b> per l'area mascherata (es. "bright red leather pants"), non la maschera. Per FLUX.1-dev: Denoise Strength ~0.7-0.85 e Guidance ~3.5.</div>
+            <div class="me-hint">Red = area to modify · <b style="color:#ffc400">gold = dilation</b> (growth around the object) · black = area to preserve.<br>🖌 Brush/Eraser draw · <b>🪢 Lasso</b>: draw an outline and release to fill it. Mask ${naturalW}×${naturalH} px. In the prompt describe the <b>result</b> for the masked area (e.g. "bright red leather pants"), not the mask. For FLUX.1-dev: Denoise Strength ~0.7-0.85 and Guidance ~3.5.</div>
             <div class="me-actions">
-              <button class="me-cancel" id="me-cancel" type="button">Annulla</button>
-              <button class="me-save" id="me-save" type="button">💾 Salva maschera</button>
+              <button class="me-cancel" id="me-cancel" type="button">Cancel</button>
+              <button class="me-save" id="me-save" type="button">💾 Save mask</button>
             </div>
           </div>`;
         document.body.appendChild(overlayEl);
@@ -387,13 +387,13 @@
         const initRef = refs.find(s => s.role === 'init') || refs[0];
         const initSlot = initRef && window.getSlot ? window.getSlot(initRef.id) : null;
         if (!initSlot || !initSlot.path) {
-            alert("Serve prima un'immagine Init (slot 1) per disegnare la maschera.");
+            alert("Load an Init image (slot 1) first to draw the mask.");
             return;
         }
         const url = toUrl(initSlot.path, initSlot.previewDataUrl);
         const img = new Image();
         img.onload = () => buildUI(img);
-        img.onerror = () => alert("Impossibile caricare l'immagine Init.");
+        img.onerror = () => alert("Could not load the Init image.");
         img.src = url;
     };
 })();

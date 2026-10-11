@@ -1,17 +1,17 @@
-// upload.js - Gestione upload file + N-Slot Dinamici (Phase 5)
+// upload.js - File upload + Dynamic N-Slots (Phase 5)
 // =============================================================================
 // ARCHITECTURE: imageSlots[] is the dynamic array managing N images.
-// Ogni slot ha: {id, role, path, file, previewDataUrl, filename}
+// Each slot is: {id, role, path, file, previewDataUrl, filename}
 // The first slot is always 'init'. Later slots have a configurable role
-// (default: 'ref' se non specificato).
-// BACKWARD COMPAT: gli IDs legacy file-input/uploaded-path + file-input-2/
-// uploaded-path-2 vengono sincronizzati con imageSlots[0] e imageSlots[1] per
+// (default: 'ref' if not specified).
+// BACKWARD COMPAT: legacy ids file-input/uploaded-path + file-input-2/
+// uploaded-path-2 are kept in sync with imageSlots[0] and imageSlots[1] for
 // compatibility with existing code that reads those fields.
 // =============================================================================
 
-const MAX_SLOTS = 8;          // Limite massimo slot
-let imageSlots = [];          // Array dinamico di slot
-let _nextSlotId = 1;          // Counter ID univoci
+const MAX_SLOTS = 8;          // Max number of slots
+let imageSlots = [];          // Dynamic slot array
+let _nextSlotId = 1;          // Unique id counter
 
 // Elementi DOM legacy (Phase 1G compatibility)
 let fileInput, fileInput2, uploadedPathInput, uploadedPathInput2;
@@ -200,9 +200,9 @@ function buildSlotElement(slot, idx) {
             <span class="slot-role-badge" data-role="${slot.role}">${info.badge}</span>
             <div class="slot-header-actions">
                 <button class="btn btn-icon slot-move-up" data-slot-id="${slot.id}"
-                    ${idx === 0 ? 'disabled' : ''} title="Sposta su (priorità di lettura)">▲</button>
+                    ${idx === 0 ? 'disabled' : ''} title="Move up (reading priority)">▲</button>
                 <button class="btn btn-icon slot-move-down" data-slot-id="${slot.id}"
-                    ${idx === imageSlots.length - 1 ? 'disabled' : ''} title="Sposta giù (priorità di lettura)">▼</button>
+                    ${idx === imageSlots.length - 1 ? 'disabled' : ''} title="Move down (reading priority)">▼</button>
             </div>
         </div>
         <div class="upload-zone-custom" data-slot-id="${slot.id}"
@@ -443,20 +443,20 @@ function swapUploadedImages() {
 }
 
 /**
- * Svuota le immagini da TUTTI gli slot e rimuove gli slot extra, tornando allo
- * stato di default: slot 1 (init) + slot 2 (ref), entrambi vuoti. I ruoli degli
- * slot base restano quelli correnti. Utile quando un run/history ha ripristinato
- * automaticamente delle reference e le si vuole azzerare in un colpo.
+ * Clear the images from ALL slots and remove the extra slots, returning to the
+ * default state: slot 1 (init) + slot 2 (ref), both empty. The roles of the
+ * base slots are kept. Useful when a run/history auto-restored reference images
+ * and you want to reset them in one go.
  */
 function clearAllImageSlots() {
-    // Rimuovi gli slot oltre i primi due tramite l'API a ID (mantiene _nextSlotId)
+    // Remove slots beyond the first two via the id API (keeps _nextSlotId)
     while (imageSlots.length > 2) {
         const last = imageSlots[imageSlots.length - 1];
         if (typeof window.removeImageSlot === 'function') window.removeImageSlot(last.id);
         else imageSlots.pop();
     }
     if (!imageSlots.length) addImageSlot('init');
-    // Azzera le immagini mantenendo i ruoli
+    // Clear the images, keeping the roles
     imageSlots.forEach(s => {
         s.path = '';
         s.file = null;

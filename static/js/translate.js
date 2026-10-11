@@ -1,10 +1,10 @@
-// translate.js — Traduzione locale (IT→EN) per OGNI campo prompt / negative prompt.
+// translate.js - local translation (IT->EN) for EVERY prompt / negative prompt field.
 // =============================================================================
-// Usa il backend POST /api/agent/translate, che gira sul llama-server locale
-// (nessun download, stessa VRAM dell'I2T). Ogni bottone ha un toggle:
-//   🌐 EN   -> traduce il campo in inglese
-//   ↩︎ IT   -> ripristina il testo originale scritto dall'utente
-// Funziona sia con <textarea>/<input> che con div[contenteditable].
+// Uses the backend POST /api/agent/translate, which runs on the local llama-server
+// (no download, same VRAM as I2T). Each button is a toggle:
+//   🌐 EN   -> translate the field to English
+//   ↩︎ IT   -> restore the user's original text
+// Works with <textarea>/<input> and with div[contenteditable].
 // =============================================================================
 (function () {
     'use strict';
@@ -19,16 +19,16 @@
         if (!el) return;
         if (el.isContentEditable) el.innerText = text;
         else el.value = text;
-        // Notifica il resto dell'app (autosave, sync slot, ecc.)
+        // Notify the rest of the app (autosave, slot sync, ...)
         try {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         } catch (e) { /* ignore */ }
     }
 
-    // Modello da usare per la traduzione: quello scelto nel selettore globale
-    // (🔓 uncensored). Se "Auto" ('') il backend sceglie un modello uncensored,
-    // così i termini artistici/anatomici non vengono rifiutati.
+    // Model to use for translation: the one chosen in the global selector
+    // (🔓 uncensored). If "Auto" ('') the backend picks an uncensored model, so
+    // artistic/anatomical terms are not refused.
     function readModel() {
         if (typeof window.getTranslateModel === 'function') {
             return window.getTranslateModel();
@@ -38,7 +38,7 @@
         return (i && i.value) || (c && c.value) || '';
     }
 
-    // Modello di traduzione corrente (dal selettore header, altrimenti localStorage).
+    // Current translation model (from the header selector, else localStorage).
     window.getTranslateModel = function () {
         try {
             const sel = document.getElementById('translate-model-select');
@@ -47,7 +47,7 @@
         } catch (e) { return ''; }
     };
 
-    // Popola il selettore globale con i modelli di traduzione (uncensored in cima).
+    // Populate the global selector with translation models (uncensored first).
     async function loadTranslateModels() {
         const sel = document.getElementById('translate-model-select');
         if (!sel) return;
@@ -55,7 +55,7 @@
             const r = await fetch('/api/agent/translate-models');
             const d = await r.json();
             const saved = localStorage.getItem('translate_model') || '';
-            sel.innerHTML = '<option value="">🌐 Trad: Auto (uncensored)</option>';
+            sel.innerHTML = '<option value="">🌐 Trans: Auto (uncensored)</option>';
             (d.models || []).forEach(m => {
                 const o = document.createElement('option');
                 o.value = m.dir;
@@ -72,9 +72,9 @@
     document.addEventListener('DOMContentLoaded', loadTranslateModels);
 
     /**
-     * Traduce (o ripristina) il contenuto di un campo.
-     * @param {string} fieldId  id del campo (textarea/input/contenteditable)
-     * @param {string} [btnId]  id del bottone da aggiornare (label + disabled)
+     * Translate (or restore) the content of a field.
+     * @param {string} fieldId  field id (textarea/input/contenteditable)
+     * @param {string} [btnId]  button id to update (label + disabled)
      */
     window.translateField = async function (fieldId, btnId) {
         const el = document.getElementById(fieldId);
@@ -83,16 +83,16 @@
 
         const current = getValue(el);
 
-        // Toggle: se il campo contiene ancora l'ultima traduzione, ripristina l'originale.
+        // Toggle: if the field still holds the last translation, restore the original.
         if (el.dataset.trOriginal !== undefined && current === el.dataset.trTranslated) {
             setValue(el, el.dataset.trOriginal);
             delete el.dataset.trOriginal;
             delete el.dataset.trTranslated;
-            if (btn) { btn.textContent = '🌐 EN'; btn.title = 'Traduci in inglese (IT→EN)'; }
+            if (btn) { btn.textContent = '🌐 EN'; btn.title = 'Translate to English (IT→EN)'; }
             return;
         }
 
-        if (!current) return;   // nulla da tradurre
+        if (!current) return;   // nothing to translate
 
         const oldLabel = btn ? btn.textContent : '';
         if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
@@ -105,16 +105,16 @@
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) throw new Error(data.detail || ('HTTP ' + resp.status));
             const en = (data.text || '').trim();
-            if (!en) throw new Error('risposta vuota dal modello');
+            if (!en) throw new Error('empty response from the model');
 
             el.dataset.trOriginal = current;
             el.dataset.trTranslated = en;
             setValue(el, en);
-            if (btn) { btn.textContent = '↩︎ IT'; btn.title = 'Ripristina il testo originale'; }
+            if (btn) { btn.textContent = '↩︎ IT'; btn.title = 'Restore the original text'; }
         } catch (e) {
             if (btn) btn.textContent = oldLabel || '🌐 EN';
-            if (window.log) window.log('❌ Traduzione fallita: ' + e.message, true, false);
-            else console.error('Traduzione fallita:', e);
+            if (window.log) window.log('❌ Translation failed: ' + e.message, true, false);
+            else console.error('Translation failed:', e);
         } finally {
             if (btn) btn.disabled = false;
         }
