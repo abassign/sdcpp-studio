@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# sdcpp-studio - .gitignore
+# ---------------------------------------------------------------------------
+
+# --- runtime data (mounted volumes, never committed) ---
+models/*
+!models/.gitkeep
+outputs/*
+!outputs/.gitkeep
+hf_cache/
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# --- secrets ---
+secrets.json
+.env
+.env.local
+*.token
+
+# --- model weights / large binaries (never commit) ---
+*.safetensors
+*.gguf
+*.ckpt
+*.pth
+*.bin
+*.onnx
+*.tar.gz
+/sd
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# --- logs ---
+*.log
+
+# --- editor / OS ---
+.vscode/
+.idea/
+*.swp
+*.*~
+.DS_Store
+
+# --- build artifacts ---
+build/
+dist/

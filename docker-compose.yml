@@ -1,0 +1,65 @@
+# sdcpp-studio - docker compose
+#
+# Only VOLUMES here: model weights / outputs / caches live on the host and are
+# mounted in. Nothing heavy is baked into the image.
+#
+#   docker compose up -d          # build (if needed) + start
+#   docker compose logs -f        # follow logs
+#   docker compose down           # stop
+#
+# GPU variants: set GPU_TYPE=rocm (default) or cuda in .env, and use the
+# matching service below.
+name: sdcpp-studio
+
+x-common: &common
+  restart: unless-stopped
+  ipc: host
+  environment:
+    PORT: "${PORT:-8000}"
+    GPU_TYPE: "${GPU_TYPE:-rocm}"
+    HF_TOKEN: "${HF_TOKEN:-}"
+    CIVITAI_TOKEN: "${CIVITAI_TOKEN:-}"
+    MODELS_DIR: /app/models
+    OUTPUTS_DIR: /app/outputs
+  volumes:
+    - "${MODELS_DIR:-./models}:/app/models"
+    - "${OUTPUTS_DIR:-./outputs}:/app/outputs"
+    - "${HF_CACHE_DIR:-./hf_cache}:/root/.cache/huggingface"
+    - "./:/app"
+
+services:
+  # --- AMD ROCm ---
+  studio-rocm:
+    <<: *common
+    build:
+      context: .
+      args:
+        VARIANT: rocm
+        AMDGPU_TARGETS: "${AMDGPU_TARGETS:-gfx1100}"
+    image: sdcpp-studio:rocm
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+
+  # --- NVIDIA CUDA ---
+  studio-cuda:
+    <<: *common
+    build:
+      context: .
+      args:
+        VARIANT: cuda
+    image: sdcpp-studio:cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
