@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Show the app version (`VERSION` file) in the header via `GET /api/version`.
+
 ## [0.1.0] - 2026-10-11
 
 ### Added
