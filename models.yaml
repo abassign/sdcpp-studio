@@ -5,11 +5,12 @@
 # they live in a mounted volume (MODELS_DIR).
 #
 # Schema (per entry):
-#   id:         stable key (also the target subfolder under MODELS_DIR)
+#   id:         stable key (also the default subfolder name for LLM/VLM entries)
 #   kind:       diffusion | vae | text_encoder | llm | lora
 #   repo:       Hugging Face repo id (owner/name)   <- TODO = not verified yet
-#   file:       file/glob inside the repo (allow_patterns)
+#   file:       file/glob inside the repo (str, or a list of globs)
 #   target:     subfolder under MODELS_DIR (checkpoints | vae | text_encoders | i2t | loras)
+#   subdir:     optional subfolder INSIDE target (i2t models NEED their own folder)
 #   size_gb:    approximate download size (disk pre-flight)
 #   license:    model license (shown to the user; weights are NOT redistributed)
 #   gated:      needs an HF token / license acceptance
@@ -21,12 +22,24 @@ version: 1
 
 components:
 
+  # ===== minimal, self-contained diffusion (demo) =====
+  sd15:
+    kind: diffusion
+    repo: Comfy-Org/stable-diffusion-v1-5-archive
+    file: "v1-5-pruned-emaonly-fp16.safetensors"
+    target: checkpoints
+    subdir: sd15
+    size_gb: 2.0
+    license: CreativeML OpenRAIL-M
+    required_by: [demo-min]
+
   # ===== diffusion checkpoints (GGUF) =====
   z-image-turbo:
     kind: diffusion
     repo: leejet/Z-Image-Turbo-GGUF
     file: "z_image_turbo-Q6_K.gguf"
     target: checkpoints
+    subdir: Z-Image-Turbo
     size_gb: 4.9
     license: see model card
     required_by: [default]
@@ -36,6 +49,7 @@ components:
     repo: leejet/ideogram-4-GGUF
     file: "ideogram4-Q4_0.gguf"
     target: checkpoints
+    subdir: Ideogram4
     size_gb: 5.3
     license: Ideogram License
     required_by: [ideogram4]
@@ -45,6 +59,7 @@ components:
     repo: leejet/ideogram-4-GGUF
     file: "ideogram4_uncond-Q4_0.gguf"
     target: checkpoints
+    subdir: Ideogram4
     size_gb: 5.3
     license: Ideogram License
     required_by: [ideogram4]
@@ -54,6 +69,7 @@ components:
     repo: leejet/Qwen-Image-2.1-GGUF
     file: "qwen_image_2.1-Q6_K.gguf"
     target: checkpoints
+    subdir: qwen-2.1
     size_gb: 5.6
     license: Apache-2.0
     required_by: [qwen21]
@@ -63,6 +79,7 @@ components:
     repo: unsloth/FLUX.1-dev-GGUF
     file: "flux1-dev-Q4_K_S.gguf"
     target: checkpoints
+    subdir: FLUX.1-dev
     size_gb: 7
     license: FLUX.1 [dev] Non-Commercial
     gated: true
@@ -97,15 +114,6 @@ components:
     license: TODO
     required_by: [default]
 
-  vae-qwen21:
-    kind: vae
-    repo: TODO            # qwen_image_2.1_vae_bf16.safetensors
-    file: "*vae*.safetensors"
-    target: vae
-    size_gb: 0.64
-    license: Apache-2.0
-    required_by: [qwen21]
-
   # ===== text encoders =====
   clip-l:
     kind: text_encoder
@@ -134,36 +142,33 @@ components:
     license: TODO
     required_by: [default]
 
-  qwen3-vl-8b:
-    kind: text_encoder
-    repo: TODO            # qwen3-vl-8b-instruct-q4_k_m.gguf (Ideogram 4 encoder)
-    file: "qwen3-vl-8b-instruct-q4_k_m.gguf"
-    target: text_encoders
-    size_gb: 4.7
-    license: Apache-2.0
-    required_by: [ideogram4]
-
   # ===== LLM / VLM (I2T, critic, translator) =====
-  qwen3vl-4b-abliterated:
+  qwen3vl-4b:
     kind: llm
-    repo: TODO            # GGUF conversion, e.g. mradermacher/Huihui-Qwen3-VL-4B-Instruct-abliterated-GGUF
-    file: "*Q4_K_M.gguf"
+    repo: mradermacher/Huihui-Qwen3-VL-4B-Instruct-abliterated-GGUF
+    file: ["*Q4_K_M.gguf", "*mmproj-f16.gguf"]
     target: i2t
-    size_gb: 2.3
+    subdir: Qwen3-VL-4B-abliterated
+    size_gb: 3.4
     license: Apache-2.0 (abliterated derivative - check terms)
-    required_by: [default, flux, ideogram4, qwen21]
+    required_by: [demo-min, default, flux, ideogram4, qwen21]
 
 presets:
-  # Modern default on a 24 GB AMD/NVIDIA GPU: Z-Image-Turbo + a small VLM.
+  # Minimal set to make the app runnable with a couple of GB:
+  # a self-contained SD1.5 checkpoint + a small vision LLM (I2T/critic/translator).
+  demo-min:
+    description: "SD1.5 (self-contained T2I/I2I) + Qwen3-VL-4B abliterated (I2T/critic/translator)."
+    components: [sd15, qwen3vl-4b]
+  # Modern default on a ~24 GB GPU.
   default:
-    description: "Z-Image-Turbo + Qwen3-VL-4B (I2T/critic/translator)."
-    components: [z-image-turbo, vae-zimage, qwen-zimage-encoder, qwen3vl-4b-abliterated]
+    description: "Z-Image-Turbo + Qwen3-VL-4B."
+    components: [z-image-turbo, vae-zimage, qwen-zimage-encoder, qwen3vl-4b]
   flux:
     description: "FLUX.1-dev (T2I + inpaint via --mask)."
-    components: [flux1-dev, vae-flux, clip-l, t5xxl, qwen3vl-4b-abliterated]
+    components: [flux1-dev, vae-flux, clip-l, t5xxl, qwen3vl-4b]
   ideogram4:
-    description: "Ideogram 4 (best text rendering) + Qwen3-VL encoder."
-    components: [ideogram4, ideogram4-uncond, vae-flux2, qwen3-vl-8b, qwen3vl-4b-abliterated]
+    description: "Ideogram 4 (best text rendering) + Qwen3-VL-8B encoder."
+    components: [ideogram4, ideogram4-uncond, vae-flux2, qwen3-vl-8b, qwen3vl-4b]
   qwen21:
     description: "Qwen-Image 2.1."
-    components: [qwen-image-2.1, vae-qwen21, qwen3vl-4b-abliterated]
+    components: [qwen-image-2.1, vae-qwen21, qwen3vl-4b]

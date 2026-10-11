@@ -63,33 +63,40 @@ def human(n):
     return f"{n:.1f}TB"
 
 
-def component(cid, spec):
-    """Return (target_dir, repo, file_glob, size_gb, license, gated)."""
+def spec_paths(cid, spec):
+    """Return (relative_dir, repo, patterns, size_gb, license, gated)."""
     kind = spec.get("kind", "diffusion")
-    return (TARGETS.get(kind, "checkpoints"), spec.get("repo"), spec.get("file", "*"),
-            spec.get("size_gb", 0), spec.get("license", "unknown"), spec.get("gated", False))
+    base = TARGETS.get(kind, "checkpoints")
+    sub = spec.get("subdir")
+    if sub is None and kind == "llm":
+        sub = cid  # LLM/VLM entries need their OWN folder (critic discovery)
+    rel = os.path.join(base, sub) if sub else base
+    pats = spec.get("file", "*")
+    if isinstance(pats, str):
+        pats = [pats]
+    return rel, spec.get("repo"), pats, spec.get("size_gb", 0), spec.get("license", "unknown"), spec.get("gated", False)
 
 
-def already_present(target_dir, file_glob):
+def already_present(target_dir, patterns):
     if not os.path.isdir(target_dir):
         return False
-    for f in os.listdir(target_dir):
-        if fnmatch.fnmatch(f, file_glob):
-            return True
-    return False
+    files = os.listdir(target_dir)
+    return all(any(fnmatch.fnmatch(f, p) for f in files) for p in patterns)
 
 
-def download_one(cid, spec, yes):
-    target, repo, glob, size, lic, gated = component(cid, spec)
+def download_one(cid, spec, yes, dry=False):
+    rel, repo, pats, size, lic, gated = spec_paths(cid, spec)
     if repo in (None, "", "TODO"):
         print(f"  ! {cid}: registry entry not filled yet (TODO) -> skipped")
         return False
-    tdir = os.path.join(models_dir(), target)
+    tdir = os.path.join(models_dir(), rel)
     os.makedirs(tdir, exist_ok=True)
-    if already_present(tdir, glob):
-        print(f"  = {cid}: already present in {target}/")
+    if already_present(tdir, pats):
+        print(f"  = {cid}: already present in {rel}/")
         return True
-    print(f"  + {cid}: {repo} [{glob}]  ~{size}GB  license={lic}" + ("  (GATED)" if gated else ""))
+    print(f"  + {cid}: {repo} {pats}  -> {rel}/  ~{size}GB  license={lic}" + ("  (GATED)" if gated else ""))
+    if dry:
+        return True
     if gated and not hf_token():
         print("    ! gated repo but no HF_TOKEN set (export HF_TOKEN=... or secrets.json)")
     if not yes:
@@ -102,7 +109,7 @@ def download_one(cid, spec, yes):
     from huggingface_hub import snapshot_download
     snapshot_download(
         repo_id=repo,
-        allow_patterns=[glob],
+        allow_patterns=pats,
         local_dir=tdir,
         token=hf_token(),
     )
@@ -115,6 +122,7 @@ def main():
     ap.add_argument("--component", help="single component id")
     ap.add_argument("--list", action="store_true", help="list presets/components")
     ap.add_argument("--yes", "-y", action="store_true", help="do not prompt")
+    ap.add_argument("--dry-run", action="store_true", help="show what would be downloaded")
     args = ap.parse_args()
 
     reg = load_registry()
@@ -137,7 +145,7 @@ def main():
     else:
         sys.exit("specify --preset <id> or --component <id> (see --list)")
 
-    total = sum(component(c, comps[c])[3] or 0 for c in ids if c in comps)
+    total = sum(spec_paths(c, comps[c])[3] or 0 for c in ids if c in comps)
     free = shutil.disk_usage(models_dir() if os.path.isdir(models_dir()) else ROOT).free
     print(f"Target: {models_dir()}  |  preset downloads ~{total}GB (free: {human(free)})")
     if total and free < total * 1024**3:
@@ -149,7 +157,7 @@ def main():
             print(f"  ? {cid}: not in components -> skipped")
             continue
         try:
-            if download_one(cid, comps[cid], args.yes):
+            if download_one(cid, comps[cid], args.yes, args.dry_run):
                 ok += 1
         except Exception as e:
             print(f"  ! {cid}: download failed: {e}")

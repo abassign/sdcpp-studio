@@ -34,7 +34,7 @@ cp .env.example .env          # optional: set MODELS_DIR / tokens
 
 `./go.sh` will:
 1. build/pull the Docker image,
-2. install the **demo-min** model preset on first run (if none are present),
+2. warn you if no models are installed (then run `./go.sh setup` for the ~5 GB demo-min preset),
 3. start the server at http://localhost:8000.
 
 Useful commands:

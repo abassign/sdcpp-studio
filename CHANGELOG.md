@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Model installer: per-model subfolder support and `--dry-run`.
+
 - `tools/sync.sh`: update the remote mirror (pclab01) with one command.
 - Show the app version (`VERSION` file) in the header via `GET /api/version`.
+- Verified `demo-min` preset: SD 1.5 + Qwen3-VL-4B (+mmproj), ~5 GB, runnable.
 
 ## [0.1.0] - 2026-10-11
 
