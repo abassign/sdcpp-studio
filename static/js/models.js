@@ -1,4 +1,4 @@
-// models.js - Gestione modelli
+// models.js - Model management
 // =============================
 
 function formatDate(timestamp) {
@@ -8,15 +8,15 @@ function formatDate(timestamp) {
 }
 
 /**
- * Parser per raggruppare modelli per cartella + ruolo
- * @param {Array} models - Lista modelli dall'API
- * @returns {Object} - Oggetto raggruppato { folder: { role: [models] } }
+ * Parse models into a { folder: { role: [models] } } structure
+ * @param {Array} models - Model list from the API
+ * @returns {Object} - Grouped object { folder: { role: [models] } }
  */
 function parseModelsByFolderAndRole(models) {
     const grouped = {};
 
     models.forEach(model => {
-        // Estrai cartella genitore dal path
+        // Extract the parent folder from the path
         const pathParts = model.path.replace(/\\/g, '/').split('/');
         // The parent folder is the second-to-last element (e.g. checkpoints, i2t, loras)
         let folder = pathParts[pathParts.length - 2];
@@ -24,7 +24,7 @@ function parseModelsByFolderAndRole(models) {
             folder = 'root';
         }
 
-        // Ruolo del modello (text_encoder, lora, checkpoint)
+        // Model role (text_encoder, lora, checkpoint)
         const role = model.role || model.category || 'checkpoint';
 
         if (!grouped[folder]) grouped[folder] = {};
@@ -37,9 +37,9 @@ function parseModelsByFolderAndRole(models) {
 }
 
 /**
- * Ottiene l'etichetta leggibile per il ruolo
- * @param {string} role - Ruolo del modello
- * @returns {string} - Etichetta leggibile
+ * Human-readable label for a role
+ * @param {string} role - Model role
+ * @returns {string} - Readable label
  */
 function getRoleLabel(role) {
     const labels = {
@@ -60,10 +60,10 @@ async function initModelSelector() {
             // Filter models by mode
             let filteredModels;
             if (window.currentMode === 'i2t') {
-                // Per i2t mostra solo modelli i2t
+                // For i2t show only i2t models
                 filteredModels = data.models.filter(m => m.category === 'i2t');
             } else {
-                // Per t2i, i2i - mostra solo checkpoint
+                // For t2i, i2i - show only checkpoints
                 filteredModels = data.models.filter(m => m.category === 'checkpoint' || !m.category);
             }
 
@@ -74,11 +74,11 @@ async function initModelSelector() {
                 return;
             }
 
-            // Raggruppa i modelli per cartella (sottocartella di checkpoints)
+            // Group models by folder (subfolder of checkpoints)
             const grouped = {};
             filteredModels.forEach(m => {
                 const pathParts = m.path.replace(/\\/g, '/').split('/');
-                // Trova la posizione di 'checkpoints' nel path
+                // Find the position of 'checkpoints' in the path
                 let folder = 'root';
                 if (pathParts.includes('checkpoints')) {
                     const idx = pathParts.indexOf('checkpoints');
@@ -87,7 +87,7 @@ async function initModelSelector() {
                     }
                 }
 
-                // Estrai solo il nome del modello
+                // Keep only the model file name
                 let modelName = m.name || m.id;
                 if (modelName.includes('/')) {
                     modelName = modelName.split('/').pop();
@@ -101,16 +101,16 @@ async function initModelSelector() {
                 });
             });
 
-            // Ordina le cartelle
+            // Sort the folders
             const sortedFolders = Object.keys(grouped).sort();
 
             sortedFolders.forEach(folder => {
                 const models = grouped[folder];
-                // Ordina i modelli nella cartella
+                // Sort the models inside the folder
                 models.sort((a, b) => a.name.localeCompare(b.name));
 
                 if (models.length === 1) {
-                    // Un solo modello: mostra solo la cartella come opzione
+                    // Single model: show the folder as the option
                     const opt = document.createElement('option');
                     opt.value = models[0].path;
                     opt.innerText = folder;
@@ -556,46 +556,46 @@ function updateStatus(text, type) {
 }
 
 /**
- * Seleziona automaticamente il modello in base al nome salvato nella history
- * @param {string} modelName - Nome del modello (es: GLM-Image)
+ * Auto-select the model from the name saved in history
+ * @param {string} modelName - Model name (e.g. GLM-Image)
  * @returns {boolean} - True if the model was selected, false otherwise
  */
 async function selectModelFromHistory(modelName) {
     if (!modelName || !modelSelect) {
-        console.warn('selectModelFromHistory: modelName o modelSelect non disponibile');
+        console.warn('selectModelFromHistory: modelName or modelSelect not available');
         return false;
     }
 
-    console.log('selectModelFromHistory: cercando modello', modelName);
+    console.log('selectModelFromHistory: looking for model', modelName);
 
-    // Pulisci il nome del modello da eventuali estensioni
+    // Strip extensions from the model name
     const cleanModelName = modelName.replace(/\.(safetensors|gguf|bin|pth|pt)$/i, '').trim();
 
     let found = false;
 
-    // Cerca per nome (solo l'ultima parte del percorso)
+    // Search by name (last part of the path only)
     for (let i = 0; i < modelSelect.options.length; i++) {
         const option = modelSelect.options[i];
         const optionPath = option.value.replace(/\\/g, '/');
         const optionName = optionPath.split('/').pop();
 
-        // Confronta solo il nome, senza estensione
+        // Compare the name only, without extension
         const cleanOptionName = optionName.replace(/\.(safetensors|gguf|bin|pth|pt)$/i, '');
 
         if (cleanOptionName === cleanModelName) {
             modelSelect.selectedIndex = i;
             found = true;
-            console.log('selectModelFromHistory: trovato modello', cleanModelName, '->', option.value);
+            console.log('selectModelFromHistory: found model', cleanModelName, '->', option.value);
             break;
         }
     }
 
     if (found) {
-        // Chiama checkModelCapabilities per aggiornare la UI
+        // Call checkModelCapabilities to refresh the UI
         await checkModelCapabilities(modelSelect.value);
         return true;
     } else {
-        console.warn('selectModelFromHistory: modello non trovato', modelName);
+        console.warn('selectModelFromHistory: model not found', modelName);
         return false;
     }
 }
