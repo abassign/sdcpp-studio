@@ -109,7 +109,7 @@ COPY workers/ /app/workers/
 COPY static/ /app/static/
 COPY libs/ /app/libs/
 COPY tools/ /app/tools/
-COPY models.yaml settings.json response_format.gbnf shared_utils.py server.py /app/
+COPY models.yaml settings.json response_format.gbnf shared_utils.py server.py VERSION /app/
 
 COPY --from=engines /usr/local/bin/sd /usr/local/bin/sd
 COPY --from=engines /usr/local/bin/llama-cli /usr/local/bin/llama-cli

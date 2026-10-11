@@ -654,6 +654,18 @@ async def upload_model_image(file: UploadFile = File(...)):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@app.get("/api/version")
+async def get_version():
+    """Return the app version (from the VERSION file at the project root)."""
+    for p in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION"), "/app/VERSION"):
+        try:
+            if os.path.exists(p):
+                return {"version": open(p).read().strip()}
+        except Exception:
+            pass
+    return {"version": "dev"}
+
+
 if __name__ == "__main__":
     import uvicorn
     # Read port from environment variable, default 7860

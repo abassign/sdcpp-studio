@@ -49,7 +49,7 @@
 <body>
 
     <div class="header">
-        <div class="logo">🧩 sdcpp-studio <span id="gpu-badge" class="badge">Loading...</span></div>
+        <div class="logo">🧩 sdcpp-studio <span id="gpu-badge" class="badge">Loading...</span> <span id="app-version" class="badge" style="background:#2a3f5f;color:#a0c4ff;"></span></div>
         <div class="nav-tabs">
             <button class="nav-btn" onclick="switchTab('i2t', this)">🧠 Image Analysis</button>
             <button class="nav-btn active" onclick="switchTab('t2i', this)">Text to Image</button>
@@ -1205,6 +1205,13 @@
     <script src="js/local_save.js?v=1"></script>
     <script src="js/translate.js?v=2"></script>
     <script src="js/main.js?v=7"></script>
+    <script>
+        // Show the app version (from /api/version) in the header.
+        fetch('/api/version').then(r => r.json()).then(d => {
+            const el = document.getElementById('app-version');
+            if (el && d && d.version) el.textContent = 'v' + d.version;
+        }).catch(() => {});
+    </script>
 </body>
 
 </html>
