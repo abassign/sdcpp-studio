@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>sdcpp-studio</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/lora.css">
+    <link rel="stylesheet" href="css/panels.css?v=32">
+    <link rel="stylesheet" href="css/utilities.css">
+    <style>
+        /* Agent Refine — resolution pickers (aspect ratio + size ladder) */
+        #agent-ratio-row .btn-sm.active,
+        #agent-size-row .btn-sm.active {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: #10250f;
+            font-weight: bold;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+        }
+        /* both rows fill the whole width: first button flush left, last flush right */
+        #agent-ratio-row,
+        #agent-size-row {
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+        #agent-ratio-row .btn-sm,
+        #agent-size-row .btn-sm {
+            flex: 1 1 0;
+            min-width: 0;
+            text-align: center;
+            padding: 5px 2px;
+        }
+        /* the 5 ratio presets are wider (about twice the 8 size buttons) */
+        #agent-ratio-row .btn-sm {
+            padding: 6px 4px;
+            font-size: 11px;
+            letter-spacing: .3px;
+        }
+        #agent-size-row .btn-sm { font-size: 10px; }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">🧩 sdcpp-studio <span id="gpu-badge" class="badge">Loading...</span></div>
+        <div class="nav-tabs">
+            <button class="nav-btn" onclick="switchTab('i2t', this)">🧠 Image Analysis</button>
+            <button class="nav-btn active" onclick="switchTab('t2i', this)">Text to Image</button>
+            <button class="nav-btn" onclick="switchTab('i2i', this)">Image to Image</button>
+            <button class="nav-btn" onclick="switchTab('agent', this)">🪄 Agent Refine</button>
+        </div>
+        <select id="translate-model-select" class="input-text"
+            title="Modello per la traduzione IT→EN (🔓 = uncensored consigliato)"
+            style="max-width:240px; font-size:11px; margin-right:8px;">
+            <option value="">🌐 Trad: Auto (uncensored)</option>
+        </select>
+        <button id="btn-exit" class="btn btn-danger" onclick="exitButtonClicked()">EXIT</button>
+    </div>
+
+
+    <div class="main-layout" style="flex-direction: column;">
+        <!-- 1. FULL WIDTH STATUS BAR -->
+        <div id="status-bar" class="status-bar">
+            <div class="status-bar-content">
+                <button id="btn-log-mode" class="status-mode-btn" onclick="toggleLogMode()"
+                    title="Switch log view">STATUS</button>
+                <span id="status-text" class="status-text">Ready</span>
+            </div>
+            <span id="timer" class="status-timer">0.0s</span>
+            <button id="btn-log-toggle" class="status-btn" onclick="toggleSystemLog()" title="Toggle Log">▼</button>
+        </div>
+
+        <!-- 2. FULL WIDTH SYSTEM LOG DRAWER -->
+        <div id="system-log-drawer" class="system-log-drawer collapsed">
+            <div id="console" class="console"></div>
+            <div id="system-console" class="console hidden"></div>
+        </div>
+
+        <!-- 3. PANELS CONTENT (Row) -->
+        <div class="panels-container">
+            <div class="panel-left">
+
+                <!-- UPLOAD PANEL -->
+                <!-- LEGACY UPLOAD LAYOUT RESTORED -->
+                <div id="upload-panel" class="hidden"
+                    style="margin-bottom:5px; display:flex; flex-direction:column; gap:10px;">
+
+                    <!-- Shown only when this panel is docked inside Agent Refine:
+                         these are the SAME I2T/I2I slots, used as extra references. -->
+                    <div class="agent-only-hint">
+                        🖼️ Additional reference images (same I2T/I2I slots) — the VLM uses
+                        their role to integrate other characteristics (style, face, ...).
+                    </div>
+
+                    <!-- 1. History Button (Top) -->
+                    <button class="btn upload-history-btn" onclick="toggleHistory()">🕒&nbsp;
+                        History Gallery</button>
+
+                    <!-- 2. DYNAMIC IMAGE SLOTS CONTAINER (Phase 5: N-Slot Support) -->
+                    <!-- The JavaScript imageSlots[] array renders 1+ upload slots into this container.
+                         Slot 1 is always 'init'. Additional slots default to 'ref' role.
+                         See renderSlots() in upload.js. -->
+                    <div id="image-slots-container" class="image-slots-container">
+                        <!-- Slots are dynamically rendered by renderSlots() in upload.js -->
+                    </div>
+
+                    <!-- 3-4. SLOT ACTIONS on a single row: Add / Clear / Auto -->
+                    <div class="slot-actions-grid">
+                        <button id="btn-add-slot" class="btn add-slot-btn hidden" onclick="addImageSlot('ref')"
+                            title="Aggiungi un'altra immagine (es. altra reference, face, mask)">
+                            ➕ Add Image
+                        </button>
+                        <button id="btn-clear-slots" class="btn add-slot-btn hidden" onclick="clearAllImageSlots()"
+                            title="Rimuovi tutte le immagini da tutti gli slot e torna a 2 slot vuoti"
+                            style="border-color:#a33; color:#ff9a9a; background:linear-gradient(135deg,#3a1f1f 0%,#2a1515 100%);">
+                            🗑️ Svuota
+                        </button>
+                        <button id="btn-auto-role" class="btn btn-sm hidden" onclick="autoAssignRoles()"
+                            style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white;"
+                            title="Analizza il prompt per suggerire i ruoli migliori per gli slot">
+                            ✨ Auto
+                        </button>
+                    </div>
+
+                    <!-- Hidden Inputs & Containers for Logic Compatibility (Phase 1G + Phase 5) -->
+                    <!-- The first two slots are mirrored to file-input/uploaded-path + file-input-2/uploaded-path-2
+                         so legacy code (Phase 1G) that reads these IDs continues to work. Slots >=3 are handled
+                         by the dynamic imageSlots[] array in upload.js. -->
+                    <div id="slot-2-container" class="hidden"></div>
+                    <input type="file" id="file-input" accept="image/*" class="hidden">
+                    <input type="hidden" id="uploaded-path">
+                    <input type="file" id="file-input-2" accept="image/*" class="hidden">
+                    <input type="hidden" id="uploaded-path-2">
+                </div>
+
+                <!-- PARAMS MODIFICATIONS -->
+
+                <!-- I2T MODEL SELECTOR -->
+                <div id="i2t-model-container" class="group hidden" style="margin-bottom: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label for="i2t-model-select">I2T Vision Model:</label>
+                        <div style="display:flex; gap:5px;">
+                            <button id="btn-refresh-i2t" class="btn-sm" onclick="loadI2TModels()" title="Refresh list">🔄</button>
+                        </div>
+                    </div>
+                    <select id="i2t-model-select" class="input-text full-width" style="font-size: 11px; margin-top: 5px;">
+                        <option value="">Loading...</option>
+                    </select>
+                    <div id="i2t-model-status" class="status-text" style="font-size: 10px; margin-top: 3px;"></div>
+                </div>
+
+                <!-- I2T Specific Params -->
+                <div id="i2t-params-panel" class="group hidden" style="margin-bottom: 5px;">
+                    <div class="row">
+                        <div class="col">
+                            <label>Top K: <span id="val-topk-i2t">1</span></label>
+                            <input type="range" id="topk-i2t" min="0.1" max="50" step="0.1" value="1">
+                            <div style="font-size:10px; color:#aaa;">1 = Deterministic, 50 = Creative</div>
+                        </div>
+                        <div class="col">
+                            <label>Temp: <span id="val-temp-i2t">0.6</span></label>
+                            <input type="range" id="temp-i2t" min="0.1" max="1.5" step="0.1" value="0.6">
+                            <div style="font-size:10px; color:#aaa;">0.1 = Cold, 1.0+ = Chaotic</div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 10px;">
+                        <div class="col">
+                            <label>Denoise Strength: <span id="val-strength-i2t">0.75</span></label>
+                            <input type="range" id="strength-i2t" min="0.01" max="1.0" step="0.01" value="0.75">
+                        </div>
+                        <div class="col">
+                            <label>Mix Ratio: <span id="val-mix-i2t">0.5</span></label>
+                            <input type="range" id="mix-ratio-i2t" min="0.0" max="1.0" step="0.05" value="0.5">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 10px;">
+                        <div class="col" style="flex: 2;">
+                            <label>Context Size: <span id="val-ctx-i2t">16384</span> tokens</label>
+                            <input type="range" id="ctx-i2t" min="512" max="32768" step="512" value="16384">
+                            <div style="font-size:10px; color:#aaa;">512 - 32K. Affects VRAM usage</div>
+                        </div>
+                        <div class="col" style="flex: 2;">
+                            <label>Dim Max Image: <span id="val-maximg-i2t">1024</span>px</label>
+                            <input type="range" id="maximg-i2t" min="512" max="2048" step="128" value="1024">
+                            <div style="font-size:10px; color:#aaa;">Resize if larger. Saves VRAM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROMPT & I2I PARAMS -->
+                <div id="i2i-specific-params" class="group hidden" style="margin-bottom: 5px;">
+                    <div class="row">
+                        <div class="col">
+                            <label>Denoise Strength: <span id="val-strength">0.75</span></label>
+                            <input type="range" id="strength" min="0.01" max="1.0" step="0.01" value="0.75">
+                        </div>
+                        <div class="col" id="col-mix">
+                            <label>Mix Ratio: <span id="val-mix">0.5</span></label>
+                            <input type="range" id="mix-ratio" min="0.0" max="1.0" step="0.05" value="0.5">
+                        </div>
+                        <div class="col">
+                            <label>Dim Max Image: <span id="val-maximg-i2i">1024</span>px</label>
+                            <input type="range" id="maximg-i2i" min="512" max="2048" step="128" value="1024">
+                            <div style="font-size:10px; color:#aaa;">Resize input if larger. Saves VRAM</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- PROMPT (Moved below I2I params) -->
+                <div class="group" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label for="prompt">Prompt:</label>
+                        <button type="button" class="btn-sm" id="btn-tr-prompt"
+                            onclick="translateField('prompt','btn-tr-prompt')"
+                            title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                    </div>
+                    <textarea id="prompt" rows="6" placeholder="Describe your imagination here..."></textarea>
+                </div>
+
+                <!-- Negative Prompt (Collapsible) -->
+                <div class="group" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label for="negative-prompt">Negative Prompt:</label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="btn-sm" id="btn-tr-neg"
+                                onclick="translateField('negative-prompt','btn-tr-neg')"
+                                title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                            <button type="button" class="btn-sm" onclick="toggleNegativePrompt()" id="negative-prompt-toggle" style="padding: 2px 8px; font-size: 11px;">▼ Show</button>
+                        </div>
+                    </div>
+                    <textarea id="negative-prompt" rows="3" placeholder="What to avoid (e.g., blurry, distorted, extra limbs)..." style="display: none;"></textarea>
+                </div>
+
+                <!-- Horizontal separator before I2T Chat Box -->
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 10px 0;">
+
+                <!-- I2T Chat Box (Collapsible, like Negative Prompt, dark blue theme) -->
+                <div id="i2t-chat-section" class="hidden" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label for="i2t-chat-input" style="color: #e5e7eb;">💬 Chat with AI</label>
+                        <button type="button" class="btn-sm" onclick="toggleI2TChat()" id="i2t-chat-toggle" style="padding: 2px 8px; font-size: 11px;">▼ Show</button>
+                    </div>
+                    <div id="i2t-chat-content" style="display: none;">
+                        <!-- Conversation display -->
+                        <div id="i2t-chat-display"
+                             style="background: #0a1628; border: 1px solid #1a3a5c; border-radius: 6px;
+                                    padding: 10px; max-height: 250px; min-height: 80px; overflow-y: auto;
+                                    font-size: 13px; line-height: 1.5; margin-bottom: 8px;">
+                            <div style="color: #6688aa; font-style: italic;">Start a conversation by typing below...</div>
+                        </div>
+                        <!-- Input area -->
+                        <textarea id="i2t-chat-input"
+                                  rows="3"
+                                  style="width: 100%; min-height: 60px; max-height: 150px; padding: 10px; border-radius: 6px;
+                                         border: 1px solid #1a3a5c; background: #0d1b36;
+                                         color: #e5e7eb; font-size: 13px; resize: vertical;
+                                         box-sizing: border-box; font-family: inherit;"
+                                  placeholder="Type your question or comment... (Enter to send, Shift+Enter for newline)"></textarea>
+                        <!-- Action buttons row: [To Prompt (3/4)] [Clear Chat (1/4)] -->
+                        <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+                            <button type="button" class="btn-sm" id="btn-tr-chat"
+                                onclick="translateField('i2t-chat-input','btn-tr-chat')"
+                                title="Traduci in inglese con il modello locale (IT→EN)"
+                                style="background:#1a3a5c; color:#e5e7eb; padding:8px 10px; border:none; border-radius:6px; cursor:pointer;">🌐 EN</button>
+                            <button id="btn-i2t-to-prompt" class="btn"
+                                    style="flex: 3; background: #4a2d6a; color: white; padding: 8px 12px;
+                                           border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
+                                           opacity: 0.4;"
+                                           disabled
+                                           title="Select text in the chat above to enable, then click to send to main Prompt">
+                                📝 To Prompt
+                            </button>
+                            <button id="btn-i2t-clear-chat" class="btn"
+                                    style="flex: 1; background: #6b2d2d; color: #ff8a8a; padding: 8px 12px;
+                                           border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;"
+                                           title="Clear chat conversation">
+                                🗑️ Clear
+                            </button>
+                        </div>
+                        <div id="i2t-chat-status" style="font-size: 11px; color: #4ade80; margin-top: 5px;">
+                            ● Model loaded in VRAM
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div id="params-panel">
+                    <div class="group">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label for="model-select">Model:</label>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <button id="btn-auto-fill-model" class="btn btn-sm" onclick="window.Preferences.autoFill()"
+                                    title="✨ Auto-fill with frequent values"
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 11px; padding: 4px 8px;">
+                                    ✨ Auto
+                                </button>
+                                <button id="btn-add-model" class="btn-circle" title="Add New Model"
+                                    onclick="toggleAddModel()">+</button>
+                            </div>
+                        </div>
+                        <select id="model-select" class="input-text full-width" style="margin-bottom: 10px;">
+                            <!-- Populated Dynamically -->
+                            <option value="loading">Loading Models...</option>
+                        </select>
+
+
+
+                        <!-- ADD MODEL ROW (Hidden) -->
+                        <div id="model-add-row" class="row hidden model-add-box">
+                            <input type="text" id="hf-repo-input" class="input-text" style="flex:1; font-size:11px;"
+                                placeholder="Author/Repo OR Civitai URL (e.g. civitai.com/models/...)">
+                            <input type="password" id="api-token-input" class="input-text"
+                                style="width: 120px; font-size:11px; margin-left:5px;"
+                                placeholder="API Token (Optional)">
+                            <button id="btn-inspect-model" class="btn-sm" onclick="inspectModel()" title="Check files"
+                                style="margin-left:5px;">🔍 Check</button>
+                            <button id="btn-get-model" class="btn-sm" onclick="downloadModel()"
+                                style="margin-left:5px;">Get Model</button>
+                        </div>
+                    </div>
+
+                    <!-- Text Encoder Selector (Separate Group) -->
+                    <div id="llm-select-container" class="group hidden">
+                        <label for="llm-select">Text Encoder (LLM):</label>
+                        <select id="llm-select" class="input-text full-width" style="font-size: 11px; margin-top: 5px;">
+                            <option value="auto">Auto-Detect</option>
+                        </select>
+                    </div>
+
+
+                    <!-- MODEL INSPECT MODAL -->
+                    <div id="model-inspect-modal" class="modal-overlay hidden">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <span>Select Files</span>
+                                <button class="close-btn" onclick="closeInspectModal()">×</button>
+                            </div>
+                            <div class="modal-body" id="model-inspect-list">
+                                <!-- File list goes here -->
+                                <div style="text-align:center; padding:20px;">Loading...</div>
+                            </div>
+                            <div style="padding: 10px 15px; border-top: 1px solid #444;">
+                                <label style="font-size: 0.85em; opacity: 0.8;">Target Subdirectory (Optional):</label>
+                                <input type="text" id="dl-target-subdir" class="input-text full-width"
+                                    placeholder="e.g. Z-Image-Turbo/transformer/gguf"
+                                    style="margin-top: 5px; background: #222; border: 1px solid #555;">
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-sm" onclick="closeInspectModal()">Cancel</button>
+                                <button class="btn btn-sm" style="background:var(--accent);"
+                                    onclick="downloadSelectedFiles()">Download Selected</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div class="row">
+                            <div class="col">
+                                <label>Width: <span id="val-w">1024</span></label>
+                                <input type="range" id="width" min="512" max="2048" step="32" value="1024">
+                            </div>
+                            <div class="col">
+                                <label>Height: <span id="val-h">1024</span></label>
+                                <input type="range" id="height" min="512" max="2048" step="32" value="1024">
+                            </div>
+                        </div>
+                        <div class="row ratios">
+                            <button class="btn-sm" onclick="setRatio(1,1)">1:1</button>
+                            <button class="btn-sm" onclick="setRatio(3,4)">3:4</button>
+                            <button class="btn-sm" onclick="setRatio(9,16)">9:16</button>
+                            <button class="btn-sm" onclick="setRatio(4,3)">4:3</button>
+                            <button class="btn-sm" onclick="setRatio(16,9)">16:9</button>
+                            <button class="btn-sm btn-orig" onclick="setOriginalRatio()">🔒 Orig</button>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label for="scheduler-select">Scheduler (Sampler):</label>
+                        </div>
+                        <div class="row" style="gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <select id="scheduler-select" class="input-text" style="flex: 1;">
+                                <option value="euler_a">Euler Ancestral (Recommended)</option>
+                                <option value="euler" selected>Euler</option>
+                                <option value="dpm++_2m_karras">DPM++ 2M Karras (Detail)</option>
+                                <option value="dpm++_sde_karras">DPM++ SDE Karras (Quality/Slow)</option>
+                                <option value="ddim">DDIM (Fast)</option>
+                                <option value="res_multistep">Res Multistep (Anti-blotching)</option>
+                            </select>
+
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label for="clip-skip" style="font-size: 11px; white-space: nowrap; margin:0;"
+                                    title="Clip Skip (2 is standard for Pony/Anime)">Clip Skip:</label>
+                                <input type="number" id="clip-skip" min="1" max="9" step="1" value="1"
+                                    class="input-text" style="width: 50px; text-align: center; padding: 4px;">
+                            </div>
+                        </div>
+                        
+                        <div class="row" style="gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 5px; flex: 1;">
+                                <label for="scheduler-type-select" style="font-size: 11px; white-space: nowrap; margin:0;"
+                                    title="Scheduler Type (discrete, karras, exponential, etc.)">Scheduler:</label>
+                                <select id="scheduler-type-select" class="input-text" style="flex: 1;">
+                                    <option value="auto" selected>Auto (model default)</option>
+                                    <option value="discrete">Discrete</option>
+                                    <option value="karras">Karras</option>
+                                    <option value="exponential">Exponential</option>
+                                    <option value="ays">AYS</option>
+                                    <option value="gits">GITS</option>
+                                    <option value="sgm_uniform">SGM Uniform</option>
+                                    <option value="simple">Simple</option>
+                                    <option value="smoothstep">Smoothstep</option>
+                                    <option value="kl_optimal">KL Optimal</option>
+                                    <option value="lcm">LCM</option>
+                                    <option value="bong_tangent">Bong Tangent</option>
+                                    <option value="flux">FLUX (FLUX.1 / Qwen-2.1)</option>
+                                    <option value="flux2">FLUX.2</option>
+                                    <option value="logit_normal">Logit Normal (Ideogram / flow)</option>
+                                    <option value="beta">Beta</option>
+                                    <option value="ltx2">LTX-2 (video)</option>
+                                    <option value="llada_image">LLaDA Image</option>
+                                </select>
+                                <button type="button" class="sched-filter-btn" id="btn-sched-filter" onclick="toggleSchedFilter()"
+                                        title="Filter the scheduler types by compatibility with the selected model">🎯</button>
+                            </div>
+                        </div>
+                        
+                        <div class="row" style="gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 5px; flex: 1;">
+                                <label for="vae-select" style="font-size: 11px; white-space: nowrap; margin:0;"
+                                    title="VAE (Optional - helps with Pony/CyberRealistic)">VAE:</label>
+                                <select id="vae-select" class="input-text" style="flex: 1;">
+                                    <option value="">Auto (Default)</option>
+                                </select>
+                                <button type="button" class="vae-filter-btn" id="btn-vae-filter" onclick="toggleVaeFilter()"
+                                        title="Filter the VAE list by compatibility with the selected model">🎯</button>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="group">
+                        <div class="row" style="justify-content: space-between; align-items: center;">
+                            <div style="display: flex; gap: 10px; flex: 1;">
+                                <div class="col" style="flex: 1;">
+                                    <label>Steps: <span id="val-steps">15</span></label>
+                                    <input type="range" id="steps" min="5" max="60" step="5" value="15">
+                                </div>
+                                <div class="col" style="flex: 1;">
+                                    <label>Guidance: <span id="val-cfg">1.5</span></label>
+                                    <input type="range" id="guidance" min="0.0" max="10.0" step="0.1" value="1.5"
+                                        title="0 = CFG disattivato (alcuni modelli lo richiedono)">
+                                </div>
+                                <!-- Guidance optimization toggles -->
+                                <div class="guidance-switches">
+                                    <label class="toggle-switch" title="Skip Layer Guidance: salta layer nella passata unconditionale per accelerare CFG > 1 (modelli DiT)">
+                                        <input type="checkbox" id="use-slg">
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-label">SLG</span>
+                                    </label>
+                                    <label class="toggle-switch" title="Adaptive Projected Guidance: adaptive projected guidance, a more efficient alternative to standard CFG">
+                                        <input type="checkbox" id="use-apg">
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-label">APG</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 10px;">
+                            <!-- Clip Skip moved to Scheduler group -->
+                        </div>
+                        <div class="row" style="margin-top:10px;">
+                            <div class="col">
+                                <label>Top K: <span id="val-topk">1</span></label>
+                                <!-- Start from 0.1 as requested -->
+                                <input type="range" id="topk" min="0.1" max="50" step="0.1" value="1">
+                                <div style="font-size:10px; color:#aaa;">1 = Deterministic, 50 = Creative</div>
+                            </div>
+                            <div class="col">
+                                <label>Temp: <span id="val-temp">0.6</span></label>
+                                <input type="range" id="temp" min="0.1" max="1.5" step="0.1" value="0.6">
+                                <div style="font-size:10px; color:#aaa;">0.1 = Cold, 1.0+ = Chaotic</div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top:10px;">
+                            <div class="col">
+                                <label>Seed (-1 = Random)</label>
+                                <input type="number" id="seed" value="-1" class="input-text">
+                            </div>
+                            <div class="col-auto">
+                                <label class="checkbox-container">Randomize
+                                    <input type="checkbox" id="randomize" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group lora-section">
+                    <div class="row header-row">
+                        <label>🧩 LoRA Loader</label>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <span id="lora-filter-status" class="lora-filter-status" title="LoRA matching the selected model / total"></span>
+                            <button id="btn-lora-filter" class="btn-sm"
+                                onclick="window.toggleLoraFilter && window.toggleLoraFilter()"
+                                title="Filter: show only LoRAs compatible with the selected model">🎯 Filter</button>
+                            <button id="btn-scan" class="btn-sm">🔄 Scan</button>
+                        </div>
+                    </div>
+                    <input type="text" id="lora-folder" value="/app/loras" class="input-text full-width">
+                    <div id="lora-container"></div>
+                    <button id="btn-add-lora" class="btn-dashed">+ Add LoRA Slot</button>
+                    <div style="font-size:10px; color:#888; margin-top:4px; line-height:1.5;">
+                        Use the <b>🎯 Filter</b> toggle to only list LoRAs compatible with the selected model.
+                        Each LoRA entry has a <b>⚙</b> icon to open/create its metadata (JSON): display name,
+                        trigger words and the checkpoints it works with.
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 15px; margin-bottom: 5px; gap: 5px;">
+                    <button id="btn-generate" class="btn btn-primary btn-lg" style="flex:1"
+                        onclick="handleGeneration()">🚀 GENERATE</button>
+                    <button id="btn-stop" class="btn danger hidden" onclick="stopGeneration()">🛑 STOP</button>
+                </div>
+
+                <!-- DEBUG PANEL -->
+                <details class="debug-details">
+                    <summary class="debug-summary">🛠️ Debug Options
+                    </summary>
+                    <div style="padding: 10px;">
+                        <label class="checkbox-container">Save Generation Log
+                            <input type="checkbox" id="save-log-checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div style="font-size:10px; color:#aaa; margin-left:25px;">Saves a .log file alongside the
+                            image.</div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Right Section: Preview + History -->
+
+            <!-- Right Section: Preview + History -->
+            <div class="panel-center-container">
+                <div class="panel-right">
+
+                    <!-- Modified Image Area without Actions overlay -->
+                    <div class="image-area" id="image-area">
+                        <div class="placeholder">Result will appear here</div>
+                        <img id="result-img" src="" style="display:none;">
+
+                        <!-- COMPARISON SLIDER REMOVED -->
+
+                        <!-- TEXT RESULT for I2T -->
+                    </div>
+
+                    <!-- IMAGE TOOLBAR (Restored) -->
+                    <div id="image-toolbar" class="image-toolbar" style="margin-top: 10px;">
+                        <button id="btn-ia-toolbar" class="action-btn" onclick="sendToIA()" title="Send to Image Analysis" disabled style="opacity:0.4;cursor:not-allowed;">🧠 IA</button>
+                        <button id="btn-i2i-toolbar" class="action-btn" onclick="sendToI2I()" title="Send to Image-to-Image" disabled style="opacity:0.4;cursor:not-allowed;">➜ I2I</button>
+                        <button id="btn-arf-toolbar" class="action-btn" onclick="sendToARF()" title="Send to Agent Refine (iterative refinement loop)" disabled style="opacity:0.4;cursor:not-allowed;">🪄 ARF</button>
+                        <button class="action-btn" onclick="sendToI2T()" title="Send to Analysis">➜ Analyze</button>
+                        <div style="width:1px; background:#444; margin:0 5px;"></div>
+                        <!-- HISTORY ACTION BUTTONS (Context sensitive) -->
+                        <button id="btn-hist-top" class="action-btn hidden" onclick="toggleHistory()">🕒
+                            History</button>
+                        <button id="btn-hist-i2i" class="action-btn hidden" onclick="toggleHistory()">🕒 I2I
+                            Hist</button>
+                        <button id="btn-hist-i2t" class="action-btn hidden" onclick="toggleHistory()">🕒 I2T
+                            Hist</button>
+                        <button class="action-btn" onclick="openZoom()">🔍 Zoom</button>
+                    </div>
+
+
+
+                    <div id="text-result-area" class="text-area-container hidden">
+                        <!-- Full IA Export Buttons (Top) -->
+                        <div style="display:flex; gap:8px; margin-bottom:12px;">
+                            <button class="btn btn-sm" onclick="sendFullIAtoT2I()"
+                                style="flex:1; background: #2a4a2a; color: #4ade80; padding: 8px 12px;
+                                       border: 1px solid #4ade80; border-radius: 6px; cursor: pointer;
+                                       font-size: 11px; font-weight: 600;"
+                                title="Send all IA data (prompts + params) to T2I">📦 To T2I</button>
+                            <button class="btn btn-sm" onclick="sendFullIAtoI2I()"
+                                style="flex:1; background: #2a2a4a; color: #8ab4f8; padding: 8px 12px;
+                                       border: 1px solid #8ab4f8; border-radius: 6px; cursor: pointer;
+                                       font-size: 11px; font-weight: 600;"
+                                title="Send all IA data (prompts + params + source image) to I2I">📦 To I2I</button>
+                        </div>
+
+                        <!-- Positive Prompt -->
+                        <div class="text-box-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>✅ Positive Prompt</span>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-sm" id="btn-tr-i2t-pos"
+                                    onclick="translateField('i2t-positive-prompt','btn-tr-i2t-pos')"
+                                    title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                                <button class="btn-sm" onclick="copyToClipboard('i2t-positive-prompt', this)">📋 Copy</button>
+                                <button class="btn-sm" onclick="sendPromptTo('t2i', 'i2t-positive-prompt')">🖊️ To T2I</button>
+                                <button class="btn-sm" onclick="sendPromptTo('i2i', 'i2t-positive-prompt')">🎨 To I2I</button>
+                                <button class="btn-sm" onclick="sendPromptToARF('i2t-positive-prompt')"
+                                    title="Invia il prompt al Goal di 🪄 Agent Refine + l'init image come riferimento">🪄 ARF</button>
+                            </div>
+                        </div>
+                        <div id="i2t-positive-prompt" class="text-box answer"
+                             style="background: #1a2a1a; border-left: 3px solid #4ade80; min-height: 80px; max-height: 400px; overflow-y: auto;"
+                             contenteditable="true"></div>
+
+                        <!-- Negative Prompt -->
+                        <div class="text-box-label" style="display:flex; justify-content:space-between; align-items:center; margin-top: 12px;">
+                            <span>🚫 Negative Prompt</span>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-sm" id="btn-tr-i2t-neg"
+                                    onclick="translateField('i2t-negative-prompt','btn-tr-i2t-neg')"
+                                    title="Traduci in inglese con il modello locale (IT→EN)">🌐 EN</button>
+                                <button class="btn-sm" onclick="copyToClipboard('i2t-negative-prompt', this)">📋 Copy</button>
+                                <button class="btn-sm" onclick="sendNegativePromptTo('t2i', 'i2t-negative-prompt')">🖊️ To T2I</button>
+                                <button class="btn-sm" onclick="sendNegativePromptTo('i2i', 'i2t-negative-prompt')">🎨 To I2I</button>
+                            </div>
+                        </div>
+                        <div id="i2t-negative-prompt" class="text-box answer"
+                             style="background: #2a1a1a; border-left: 3px solid #ef4444; min-height: 60px; max-height: 200px; overflow-y: auto;"
+                             contenteditable="true"></div>
+
+                        <!-- Reasoning / Thinking -->
+                        <div class="text-box-label"
+                            style="display:flex; justify-content:space-between; cursor:pointer; margin-top: 12px;"
+                            onclick="toggleThinking()">
+                            <span><span id="thinking-toggle-icon">▶</span> 🧠 Reasoning</span>
+                            <div style="display:flex; gap:5px;" onclick="event.stopPropagation()">
+                                <button class="btn-sm" onclick="copyToClipboard('thinking-box', event)">📋 Copy</button>
+                            </div>
+                        </div>
+                        <div id="thinking-box" class="text-box thinking collapsed"
+                             style="max-height: 300px; overflow-y: auto;">Analysis starting...</div>
+
+                        <!-- Hidden conversation buffer for virtual T2T mode -->
+                        <input type="hidden" id="i2t-conversation-buffer" value="">
+                    </div>
+                </div>
+
+                <!-- HISTORY PANEL COLLAPSIBLE -->
+                <div id="history-panel" class="history-panel collapsed">
+                    <div class="history-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap;">
+                        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                            <span>🕒</span>
+                            <span style="font-size:12px; font-weight:bold;">History</span>
+                            <span id="history-count" style="font-size:10px; color:#888; background:#333; padding:1px 5px; border-radius:3px; min-width:20px; text-align:center;">0</span>
+                        </div>
+                        <div id="history-toolbar" style="display:flex; gap:4px; flex-shrink:0;">
+                             <button id="btn-history-refresh" class="btn-xs" title="Refresh History"
+                                 onclick="refreshHistory()">🔄</button>
+                             <button id="btn-history-filter" class="btn-xs" title="Filter"
+                                 onclick="toggleHistoryFilter()">∞</button>
+                             <button id="btn-size-toggle" class="btn-xs" title="Toggle Size"
+                                 onclick="toggleHistorySize()">🔽</button>
+                             <button id="btn-semantic-toggle" class="btn-xs" title="Semantic Grouping"
+                                 onclick="toggleSemanticMode()">🏷️</button>
+                             <button class="close-btn" onclick="toggleHistory()">×</button>
+                         </div>
+                         <!-- BATCH MODE toolbar (hidden by default) -->
+                         <div id="history-batch-toolbar" class="hidden" style="display:flex; gap:4px; flex-shrink:0; align-items:center;">
+                             <span id="batch-count" style="font-size:10px; color:#8cf; background:#1a3a5a; padding:2px 6px; border-radius:3px;">0</span>
+                             <button id="btn-batch-download" class="btn-xs" title="Download selected items"
+                                 onclick="batchDownloadSelected()" style="background:#1a5a1a; color:#4ade80; font-weight:bold;">▼</button>
+                             <button id="btn-batch-cancel" class="btn-xs" title="Cancel selection"
+                                 onclick="cancelBatchSelection()" style="background:#5a1a1a; color:#ff8a8a;">🛑</button>
+                         </div>
+                    </div>
+                    <!-- SEMANTIC PANEL (Hidden by default) -->
+                    <div id="semantic-panel" class="semantic-panel" style="display:none;">
+                        <div style="padding:8px; background:#2a2a2a; border-bottom:1px solid #444;">
+                            <div style="font-size:11px; color:#aaa; margin-bottom:6px;">🔍 Semantic Search & Grouping</div>
+                            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                                <input type="text" id="semantic-search-input" placeholder="Search: landscape, portrait, serene..."
+                                       style="flex:1; padding:6px; border-radius:4px; border:1px solid #555; background:#1a1a1a; color:#fff; font-size:11px;">
+                                <button id="btn-semantic-search" class="btn-xs" onclick="executeSemanticSearch()" style="background:#3a5a3a;">🔍 Search</button>
+                            </div>
+                            <div style="display:flex; gap:5px; margin-top:6px; flex-wrap:wrap;">
+                                <button id="btn-view-tags" class="btn-xs" onclick="executeView('tag')" style="background:#334;">🏷️ By Tag</button>
+                                <button id="btn-view-mood" class="btn-xs" onclick="executeView('mood')" style="background:#433;">😊 By Mood</button>
+                                <button id="btn-view-style" class="btn-xs" onclick="executeView('style')" style="background:#343;">🎨 By Style</button>
+                                <button id="btn-auto-tag" class="btn-xs" onclick="showTaggingDialog()" style="background:#4a3a1a;">🏷️ Tagging</button>
+                                <button id="btn-stop-tag" class="btn-xs hidden" onclick="stopAutoTag()" style="background:#5a1a1a; color:#ff6666; font-weight:bold;">⏹️ Stop</button>
+                                <button id="btn-cancel-view" class="btn-xs hidden" onclick="cancelView()" style="background:#533;">✕ Cancel</button>
+                            </div>
+                            <div id="tag-progress" style="display:none; margin-top:6px; font-size:11px; color:#8a8;"></div>
+                        </div>
+                        <div id="semantic-results" style="max-height:200px; overflow-y:auto;"></div>
+                    </div>
+                    <div id="history-list" class="history-list">
+                        <!-- Items injected by JS -->
+                    </div>
+                    <div id="history-footer" class="history-footer"></div>
+                </div>
+
+                <!-- EXPAND BUTTON (Visible when history is closed) -->
+                <div id="history-toggle-btn" class="history-toggle" onclick="toggleHistory()">
+                    ◀
+                </div>
+            </div>
+
+        </div>
+
+                <!-- ============ AGENT REFINE PANEL - iterative refinement workspace ============ -->
+        <div id="agent-panel" class="hidden"
+             style="flex:1; min-width:0; min-height:0; display:flex; flex-direction:column; box-sizing:border-box; overflow:hidden;">
+
+            <!-- Workspace row: left params | center viewer | right rail(s).
+                 The standard History panel is docked here (far right) while in
+                 agent mode and restored to the main workspace on exit. -->
+            <div id="agent-workspace-row" style="display:flex; flex:1; min-height:0; min-width:0;">
+
+                <!-- ======================= LEFT: run parameters ======================= -->
+                <div class="agent-left">
+                    <div class="group">
+                        <label for="agent-goal" style="font-weight:bold;">🎯 Goal (requested edit)</label>
+                        <textarea id="agent-goal" rows="6" class="input-text full-width"
+                            placeholder='e.g. "change the boy into a girl, keep the same pose, clothes and background"'></textarea>
+                        <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                            <button id="btn-goal-translate" class="btn btn-sm" onclick="translateAgentGoal()"
+                                title="Traduci il goal in inglese con il modello locale (IT→EN)"
+                                style="font-size:11px;">🌐 Traduci in English</button>
+                            <span id="goal-translate-status" style="font-size:11px; color:#888;"></span>
+                        </div>
+                    </div>
+
+                    <!-- The reference image is now the FIRST of the shared I2T/I2I
+                         slots above (role 🎯 Init Image): no separate Agent
+                         upload box. agent-image-path is kept as the hidden mirror
+                         used by run/retry and by rail/history clicks. -->
+                    <input type="hidden" id="agent-image-path">
+
+                    <div class="group">
+                        <label for="agent-interpreter">🔎 Interprete (I2T) — opzionale:</label>
+                        <select id="agent-interpreter" class="input-text full-width" style="font-size:11px;">
+                            <option value="">Auto (nessuno — usa il Critic)</option>
+                        </select>
+                        <div style="font-size:10px; color:#888; margin-top:3px;">Un VLM <b>separato</b> che descrive <b>una volta</b> l'Init Image (per specializzare: descrittore uncensored + critico ragionatore). Il Critic <b>continua a vedere</b> le immagini.</div>
+                    </div>
+
+                    <div class="group">
+                        <label for="agent-critic">🧠 Critic (VLM):</label>
+                        <select id="agent-critic" class="input-text full-width" style="font-size:11px;">
+                            <option value="">Loading...</option>
+                        </select>
+                        <div style="font-size:10px; color:#888; margin-top:3px;">The VLM that evaluates every step and rewrites the prompt.</div>
+                    </div>
+
+                    <div class="group">
+                        <label for="agent-diffusion">🎨 Generator (T2I):</label>
+                        <select id="agent-diffusion" class="input-text full-width" style="font-size:11px;">
+                            <option value="">Loading...</option>
+                        </select>
+                        <div style="font-size:10px; color:#888; margin-top:3px;">Use <b>.gguf</b> models (e.g. z_image_turbo): .safetensors without a VAE fail.</div>
+                    </div>
+
+                    <!-- ===== Edit controls: interpret image + edit from reference ===== -->
+                    <div class="group">
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <label class="checkbox-container cap-toggle" id="agent-use-image-wrap" style="margin:0;"
+                                   title="Send the reference image to the VLM critic so it can see what it judges.">
+                                🖼️ Interpreta immagine
+                                <input type="checkbox" id="agent-use-image" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                            <label class="checkbox-container cap-toggle" id="agent-edit-ref-wrap" style="margin:0;"
+                                   title="Pass the reference image to the generator so every iteration is a real EDIT (sd.cpp -r) instead of a text-to-image regeneration.">
+                                ✏️ Edit da riferimento
+                                <input type="checkbox" id="agent-edit-ref" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                            <select id="agent-edit-anchor" class="input-text"
+                                    style="font-size:11px; max-width:230px;"
+                                    title="Which image to edit from: the ORIGINAL (no drift), the PREVIOUS iteration (chain), or both (hybrid, default).">
+                                <option value="hybrid" selected>Ibrida (originale + precedente)</option>
+                                <option value="original">Originale (nessun drift)</option>
+                                <option value="chain">Catena (dalla precedente)</option>
+                            </select>
+                        </div>
+                        <div id="agent-cap-warning" class="hidden"
+                             style="font-size:11px; color:#ffcc66; background:#3a2f12; border:1px solid #6a5a1a;
+                                    border-radius:4px; padding:5px 8px; margin-top:6px; line-height:1.45;"></div>
+                        <div style="font-size:10px; color:#888; margin-top:3px;">
+                            Interpreta = il critico VLM legge l'immagine. Edit = il generatore la usa come riferimento (<b>-r</b>).
+                        </div>
+                    </div>
+
+                    <!-- Same external-module selectors as T2I/I2I, wrapped in a
+                         collapsible panel: collapsed it shows the 3 chosen values only. -->
+                    <div class="group">
+                        <div class="row header-row" id="agent-modules-header"
+                             style="cursor:pointer; user-select:none;"
+                             onclick="window.agentToggleModules && window.agentToggleModules()"
+                             title="Show / hide the Text Encoder, VAE and Scheduler type selectors">
+                            <label style="cursor:pointer; margin:0;">🧩 External modules</label>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <button type="button" class="btn-xs"
+                                    onclick="event.stopPropagation(); window.agentAutoModelFields && window.agentAutoModelFields()"
+                                    title="Pick the most-used value for the selected Generator from the saved statistics (data/preferences.json); falls back to copying the T2I/I2I panel">Auto</button>
+                                <span id="agent-modules-chevron" style="font-size:11px; color:#8ab4f8;">▶</span>
+                            </div>
+                        </div>
+
+                        <!-- collapsed view: only the selected values (3 lines) -->
+                        <div id="agent-modules-summary"
+                             style="font-size:10px; line-height:1.75; color:#aaa; margin-top:5px; font-variant-numeric:tabular-nums;">
+                            <div>🧠 Text Encoder (LLM): <span id="agent-sum-llm" style="color:#8ab4f8;">Auto-Detect</span></div>
+                            <div>🎨 VAE: <span id="agent-sum-vae" style="color:#8ab4f8;">Auto-Detect</span></div>
+                            <div>⏱️ Scheduler type: <span id="agent-sum-stype" style="color:#8ab4f8;">Auto-Detect</span></div>
+                        </div>
+
+                        <!-- expanded editor -->
+                        <div id="agent-modules-body" class="hidden" style="margin-top:8px;">
+                            <div class="group" style="margin:0 0 8px 0;">
+                                <label for="agent-llm">🧠 Text Encoder (LLM):</label>
+                                <select id="agent-llm" class="input-text full-width" style="font-size:11px;">
+                                    <option value="auto" selected>Auto-Detect</option>
+                                </select>
+                                <div style="font-size:10px; color:#888; margin-top:3px;">Text encoder / LLM GGUF (Z-Image, Qwen-Image-Edit, FLUX.2). Same list as T2I/I2I.</div>
+                            </div>
+
+                            <div class="group" style="margin:0 0 8px 0;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <label for="agent-vae" style="margin:0;">🎨 VAE:</label>
+                                    <button type="button" class="vae-filter-btn" id="btn-agent-vae-filter" onclick="toggleVaeFilter()"
+                                            title="Filter the VAE list by compatibility with the selected model">🎯</button>
+                                </div>
+                                <select id="agent-vae" class="input-text full-width" style="font-size:11px;">
+                                    <option value="auto" selected>Auto-Detect</option>
+                                </select>
+                                <div style="font-size:10px; color:#888; margin-top:3px;">External VAE (ae.sft / *_vae.safetensors). Many GGUF models do not embed it. Same list as T2I/I2I.</div>
+                            </div>
+
+                            <div class="group" style="margin:0;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <label for="agent-scheduler-type" style="margin:0;">⏱️ Scheduler type:</label>
+                                    <button type="button" class="sched-filter-btn" id="btn-agent-sched-filter" onclick="toggleSchedFilter()"
+                                            title="Filter the scheduler types by compatibility with the selected model">🎯</button>
+                                </div>
+                                <select id="agent-scheduler-type" class="input-text full-width" style="font-size:11px;">
+                                    <option value="auto" selected>Auto (model default)</option>
+                                </select>
+                                <div style="font-size:10px; color:#888; margin-top:3px;">Sampler discretization: discrete | karras | exponential | ... Same as T2I/I2I.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Same LoRA loader as T2I/I2I (own container, same picker/weights) -->
+                    <div class="group lora-section">
+                        <div class="row header-row">
+                            <label>🧩 LoRA Loader</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <span id="agent-lora-filter-status" class="lora-filter-status" title="LoRA matching the selected model / total"></span>
+                                <button id="agent-btn-lora-filter" class="btn-sm" type="button"
+                                    title="Filter: show only LoRAs compatible with the selected model">🎯 Filter</button>
+                                <button id="agent-btn-scan" class="btn-sm" type="button">🔄 Scan</button>
+                            </div>
+                        </div>
+                        <div id="agent-lora-container"></div>
+                        <button id="agent-btn-add-lora" class="btn-dashed" type="button">+ Add LoRA Slot</button>
+                        <div style="font-size:10px; color:#888; margin-top:4px; line-height:1.5;">
+                            Same LoRA picker and weights as T2I/I2I — applied to every Agent Refine generation.
+                        </div>
+                    </div>
+
+                    <!-- Resolution schedule (coarse-to-fine) -->
+                    <div class="group">
+                        <label>📐 Resolution (coarse-to-fine)</label>
+
+                        <!-- aspect ratio (same 5 presets as T2I/I2I) -->
+                        <div class="row ratios" id="agent-ratio-row" style="gap:6px; margin-top:0;">
+                            <button type="button" class="btn-sm active" data-ratio="1:1"
+                                onclick="window.agentSetRatio && window.agentSetRatio('1:1')">1:1</button>
+                            <button type="button" class="btn-sm" data-ratio="3:4"
+                                onclick="window.agentSetRatio && window.agentSetRatio('3:4')">3:4</button>
+                            <button type="button" class="btn-sm" data-ratio="9:16"
+                                onclick="window.agentSetRatio && window.agentSetRatio('9:16')">9:16</button>
+                            <button type="button" class="btn-sm" data-ratio="4:3"
+                                onclick="window.agentSetRatio && window.agentSetRatio('4:3')">4:3</button>
+                            <button type="button" class="btn-sm" data-ratio="16:9"
+                                onclick="window.agentSetRatio && window.agentSetRatio('16:9')">16:9</button>
+                        </div>
+
+                        <!-- size ladder: click to include/exclude a resolution -->
+                        <div class="row" id="agent-size-row" style="gap:4px; margin-top:8px;">
+                            <button type="button" class="btn-sm" data-size="384"
+                                onclick="window.agentToggleSize && window.agentToggleSize(384)">384</button>
+                            <button type="button" class="btn-sm active" data-size="512"
+                                onclick="window.agentToggleSize && window.agentToggleSize(512)">512</button>
+                            <button type="button" class="btn-sm active" data-size="768"
+                                onclick="window.agentToggleSize && window.agentToggleSize(768)">768</button>
+                            <button type="button" class="btn-sm active" data-size="1024"
+                                onclick="window.agentToggleSize && window.agentToggleSize(1024)">1024</button>
+                            <button type="button" class="btn-sm" data-size="1280"
+                                onclick="window.agentToggleSize && window.agentToggleSize(1280)">1280</button>
+                            <button type="button" class="btn-sm" data-size="1536"
+                                onclick="window.agentToggleSize && window.agentToggleSize(1536)">1536</button>
+                            <button type="button" class="btn-sm" data-size="1792"
+                                onclick="window.agentToggleSize && window.agentToggleSize(1792)">1792</button>
+                            <button type="button" class="btn-sm" data-size="2048"
+                                onclick="window.agentToggleSize && window.agentToggleSize(2048)">2048</button>
+                        </div>
+
+                        <div id="agent-sched-preview"
+                             style="font-size:10px; color:#8ab4f8; margin-top:6px; font-variant-numeric:tabular-nums;"></div>
+                        <!-- the ladder that is actually sent (hidden: keeps the old id) -->
+                        <input type="hidden" id="agent-schedule" value="512x512,768x768,1024x1024">
+                        <div class="row" style="gap:8px; margin-top:8px; align-items:center;">
+                            <label for="agent-iter" style="white-space:nowrap;">🔁 Iterations:</label>
+                            <input type="number" id="agent-iter" value="3" min="1" max="12"
+                                   class="input-text full-width" style="width:64px;">
+                            <span style="font-size:10px; color:#888; flex:1;">Defaults to the number of chosen resolutions (one per step). Each Retry grows the longer side by +256 px.</span>
+                        </div>
+                    </div>
+
+                    <!-- Generation params -->
+                    <div class="group">
+                        <div style="font-weight:bold; margin-bottom:6px;">⚙️ Generation parameters</div>
+                        <div class="row" style="gap:14px;">
+                            <div class="col">
+                                <label>👣 Steps: <span id="val-agent-steps">10</span></label>
+                                <input type="range" id="agent-steps" min="1" max="60" step="1" value="10"
+                                    oninput="document.getElementById('val-agent-steps').textContent=this.value">
+                            </div>
+                            <div class="col">
+                                <label>🎚️ Guidance: <span id="val-agent-cfg">2.0</span></label>
+                                <input type="range" id="agent-cfg" min="0.0" max="12" step="0.1" value="2.0"
+                                    title="0 = CFG disattivato (alcuni modelli lo richiedono)"
+                                    oninput="document.getElementById('val-agent-cfg').textContent=parseFloat(this.value).toFixed(1)">
+                            </div>
+                        </div>
+                        <div class="row" style="gap:14px; margin-top:12px;">
+                            <div class="col">
+                                <label>🧠 Critic temperature: <span id="val-agent-creativity">0.5</span></label>
+                                <input type="range" id="agent-creativity" min="0.1" max="1.5" step="0.1" value="0.5"
+                                    oninput="document.getElementById('val-agent-creativity').textContent=parseFloat(this.value).toFixed(1)">
+                            </div>
+                        </div>
+                        <div style="font-size:10px; color:#888;">Higher = the VLM critic writes more creative / varied prompt rewrites (0.5 balanced, 1.0+ exploratory).</div>
+                        <div class="row" style="gap:14px; margin-top:12px; align-items:flex-end;">
+                            <div class="col" style="flex:0 0 auto;">
+                                <label>🎲 Seed&nbsp;<button type="button" class="btn-xs" onclick="window.agentRandomSeed()"
+                                        title="Pick a random seed">🎲</button></label>
+                                <input type="number" id="agent-seed" value="42" class="input-text" style="width:110px;">
+                            </div>
+                            <div class="col" style="flex:1;">
+                                <label for="agent-seed-mode">🔀 Seed per step</label>
+                                <select id="agent-seed-mode" class="input-text full-width" style="font-size:11px;">
+                                    <option value="fixed" selected>Fixed (same for every step)</option>
+                                    <option value="step1">+1 per step</option>
+                                    <option value="step2">+2 per step</option>
+                                    <option value="step5">+5 per step</option>
+                                    <option value="random">Random per step</option>
+                                </select>
+                            </div>
+                            <div class="col" style="flex:0 0 84px;">
+                                <label for="agent-variants">🧪 Variants</label>
+                                <input type="number" id="agent-variants" value="1" min="1" max="6" class="input-text" style="width:70px;"
+                                    title="Number of full runs to launch sequentially, each with a different base seed">
+                            </div>
+                        </div>
+                        <div style="font-size:10px; color:#888; margin-top:3px;">Variants &gt; 1 runs the whole ladder N times with seeds base, base+1, … (each its own run folder).</div>
+                        <div class="row" style="gap:14px; margin-top:12px;">
+                            <div class="col">
+                                <label for="agent-scheduler">🔄 Sampler</label>
+                                <select id="agent-scheduler" class="input-text full-width" style="font-size:11px;">
+                                    <option value="euler" selected>Euler</option>
+                                    <option value="euler_a">Euler Ancestral</option>
+                                    <option value="dpm++_2m_karras">DPM++ 2M Karras</option>
+                                    <option value="dpm++_sde_karras">DPM++ SDE Karras</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label class="checkbox-container" style="margin-top:10px;"
+                               title="OFF = always generate all iterations of the chosen resolution ladder (recommended). ON = stop as soon as the critic reports GOAL_REACHED, skipping the remaining resolutions.">
+                            Early stop
+                            <input type="checkbox" id="agent-early">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div style="font-size:10px; color:#888;">Leave <b>off</b> to get every iteration at increasing resolutions.</div>
+                        <label class="checkbox-container" style="margin-top:6px;"
+                               title="When the critic's adherence score stops improving for several iterations, the agent diagnoses the stuck direction and restarts with a structurally different strategy (anti-repeat memory).">
+                            🧭 Explore when stuck
+                            <input type="checkbox" id="agent-explore" checked>
+                            <span class="checkmark"></span>
+                        </label>
+                        <div style="font-size:10px; color:#888;">Escapes local minima: the critic scores 0–10; if it plateaus, a new strategy is tried (diagnosis + strategy are logged to <b>explore_log.md</b> in the run folder).</div>
+                        <label class="checkbox-container" style="margin-top:6px;"
+                               title="Separate the judge from the generator: the rewrite pass only writes the prompt, then a dedicated STRICT reviewer rates the image. Removes the 'I wrote it, so it must be good' bias (+1 VLM call per step).">
+                            🔍 Independent critic (judge ≠ generator)
+                            <input type="checkbox" id="agent-twophase">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div style="font-size:10px; color:#888;">A separate reviewer call (with strict anchors) judges every refinement step, independent of the prompt that produced it. Recommended for hard goals.</div>
+                    </div>
+
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                        <button id="btn-agent-run" class="btn btn-primary" style="flex:1; padding:10px 14px; font-weight:bold;"
+                            onclick="runAgent()">▶ Start Agentic Refine</button>
+                        <div id="btn-agent-retry" class="retry-combo hidden"
+                             title="Continue the run: [&lt;&lt;] −512 px, [&lt;] −256 px, [=] same resolution, [&gt;] +256 px, [&gt;&gt;] +512 px.">
+                            <span class="retry-label">🔁 Retry</span>
+                            <button class="retry-delta" data-delta="-512" onclick="agentRetry(-512)" title="Retry at a much smaller resolution (−512 px on the longer side)">&lt;&lt;</button>
+                            <button class="retry-delta" data-delta="-256" onclick="agentRetry(-256)" title="Retry at a smaller resolution (−256 px on the longer side)">&lt;</button>
+                            <button class="retry-delta" data-delta="0" onclick="agentRetry(0)" title="Retry at the SAME resolution">=</button>
+                            <button class="retry-delta active" data-delta="256" onclick="agentRetry(256)" title="Retry at a larger resolution (+256 px on the longer side)">&gt;</button>
+                            <button class="retry-delta" data-delta="512" onclick="agentRetry(512)" title="Retry at a much larger resolution (+512 px on the longer side)">&gt;&gt;</button>
+                        </div>
+                        <button id="btn-agent-stop" class="btn danger hidden" onclick="stopAgent()">🛑 Stop</button>
+                    </div>
+
+                    <!-- Result actions: enabled only after a run completes -->
+                    <div id="agent-result-actions" class="hidden"
+                         style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; border-top:1px dashed #2a4a3a; padding-top:8px; margin-top:4px;">
+                        <span style="font-size:11px; color:#4ade80;">✅ Run complete.</span>
+                        <button id="btn-agent-toT2I" class="btn" onclick="agentToT2I()" disabled
+                            style="flex:1; background:#2a4a2a; color:#4ade80; padding:6px 10px; font-size:12px; font-weight:bold; opacity:0.5; cursor:not-allowed;"
+                            title="Send the last image + prompt of the run to the T2I tab. No file is created in outputs: the actual generation happens when you press GENERATE.">➡️ to T2I</button>
+                        <button id="btn-agent-toI2I" class="btn" onclick="agentToI2I()" disabled
+                            style="flex:1; background:#2a3a4a; color:#6ab8e6; padding:6px 10px; font-size:12px; font-weight:bold; opacity:0.5; cursor:not-allowed;"
+                            title="Send the last image of the run as SOURCE to the I2I tab, with the prompt pre-filled. No file is created in outputs.">🎨 to I2I</button>
+                        <button id="btn-agent-cleanup" class="btn" onclick="agentCleanup()" disabled
+                            style="flex:1; background:#3a2a2a; color:#ff8a8a; padding:6px 10px; font-size:12px; opacity:0.5; cursor:not-allowed;"
+                            title="Delete only the current agent_refine_<ts> run folder">🗑️ Cleanup run</button>
+                    </div>
+
+                    <!-- ============ AGENT EXPERIENCE (real-time view of the search) ============ -->
+                    <div class="group agent-exp-group">
+                        <div class="agent-exp-head" id="agent-exp-head"
+                             style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none;">
+                            <span style="font-weight:bold;">🧭 Agent experience <small style="font-weight:normal; color:#777; font-size:9px;">(click to collapse)</small></span>
+                            <span class="agent-exp-arrow" id="agent-exp-arrow" style="font-size:10px; color:#888;">▼</span>
+                        </div>
+                        <div id="agent-exp-body" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+                            <div style="font-size:10px; color:#888; line-height:1.4;">Live view of the search: mode, scores, strategies tried and best prompt found (saved in the run folder).</div>
+                            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                <span class="exp-chip exp-mode" id="exp-mode">mode: —</span>
+                                <span class="exp-chip" id="exp-iter">iter —</span>
+                                <span class="exp-chip exp-adv" id="exp-adv">adherence —</span>
+                                <span class="exp-chip exp-fid" id="exp-fid">fidelity —</span>
+                                <span class="exp-chip exp-comb" id="exp-comb" title="Combined decision score: adherence scaled down when fidelity is low (drift is punished)">combined —</span>
+                            </div>
+                            <div style="display:flex; gap:4px; flex-wrap:wrap;" id="exp-strategies"></div>
+                            <div style="font-size:10px; color:#8ab4f8;">🏆 Best prompt so far:</div>
+                            <div class="agent-text-box" id="exp-best" onclick="window.copyAgentPrompt && copyAgentPrompt(this)"
+                                 style="max-height:64px; font-size:10px; cursor:pointer; white-space:pre-wrap; word-break:break-word;">…</div>
+                            <div style="font-size:10px; color:#e6c84a;" id="exp-msg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================= CENTER: selected image + texts ======================= -->
+                <div class="agent-center">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span style="display:flex; align-items:center; gap:6px;">
+                            <button class="btn btn-sm" id="btn-sel-prev" onclick="agentSelPrev()"
+                                style="padding:2px 8px; font-size:12px;" title="Previous step">◀</button>
+                            <button class="btn btn-sm" id="btn-sel-next" onclick="agentSelNext()"
+                                style="padding:2px 8px; font-size:12px;" title="Next step">▶</button>
+                            <span id="agent-sel-count" style="font-size:10px; color:#777;"></span>
+                            <span id="agent-sel-title" class="agent-sel-title">🪄 No step selected</span>
+                        </span>
+                        <span id="agent-sel-dims" class="agent-sel-dims"></span>
+                    </div>
+
+                    <div class="agent-canvas" id="agent-canvas">
+                        <div id="agent-sel-empty" class="agent-sel-empty">
+                            Select an image of the <b>Progression (right rail)</b><br>
+                            to view it enlarged with its prompt and critique.
+                        </div>
+                        <img id="agent-sel-img" alt="" class="hidden"
+                             style="max-width:100%; max-height:52vh; object-fit:contain; border-radius:6px; background:#000;">
+                    </div>
+
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                        <button class="btn btn-sm" id="btn-sel-zoom" onclick="agentSelZoom()" disabled
+                            style="opacity:0.5; cursor:not-allowed;" title="Open the selected image full screen">🔍 Zoom</button>
+                        <button class="btn btn-sm" id="btn-sel-ref" onclick="agentSelAsRef()" disabled
+                            style="opacity:0.5; cursor:not-allowed;" title="Use the selected image as reference for a new run">📌 Reference</button>
+                        <span style="flex:1;"></span>
+                        <button class="btn btn-sm" id="btn-sel-t2i" onclick="agentSelToT2I()" disabled
+                            style="background:#2a4a2a; color:#4ade80; opacity:0.5; cursor:not-allowed;" title="Send this step's prompt to the T2I tab">➡️ step to T2I</button>
+                        <button class="btn btn-sm" id="btn-sel-i2i" onclick="agentSelToI2I()" disabled
+                            style="background:#2a3a4a; color:#6ab8e6; opacity:0.5; cursor:not-allowed;" title="Send image + prompt of this step to the I2I tab">🎨 step to I2I</button>
+                    </div>
+
+                    <div class="agent-texts">
+                        <div style="flex:1 1 340px; min-width:0;">
+                            <div class="agent-text-head" style="color:#4ade80;">📝 Prompt used for this step <small>(click to copy)</small></div>
+                            <div id="agent-sel-prompt" class="agent-text-box" onclick="copyAgentPrompt(this)">…</div>
+                        </div>
+                        <div style="flex:1.2 1 380px; min-width:0;">
+                            <div class="agent-text-head" style="color:#e6c84a;">🧠 Critique from the critic (VLM) <small>(click to copy)</small></div>
+                            <div id="agent-sel-critique" class="agent-text-box" onclick="copyAgentPrompt(this)">…</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================= RIGHT: Progression rail (collapsible) ======================= -->
+                <div class="agent-rail" id="agent-rail">
+                    <button id="agent-rail-toggle" class="agent-rail-toggle" onclick="toggleAgentRail()"
+                        title="Collapse the image gallery">▶</button>
+                    <div id="agent-rail-body" class="agent-rail-body">
+                        <div class="agent-rail-head">
+                            <span>🖼️ Progression</span>
+                            <span style="display:flex; gap:4px;">
+                                <button class="btn-xs" onclick="agentClearRail()" title="Clear the run gallery">🗑</button>
+                            </span>
+                        </div>
+                        <div id="agent-gallery" class="agent-rail-list"></div>
+                    </div>
+                </div>
+
+                <!-- The STANDARD History panel (#history-panel + #history-toggle-btn) is
+                     moved here from the main workspace by agent.js while the Agent tab is
+                     active, and moved back when leaving it. No duplicate/custom History UI. -->
+            </div>
+
+            <!-- (progress & log follow T2I/I2I: shown in the top STATUS bar / system log) -->
+        </div>
+    </div>
+
+    <!-- ARF STEP PICKER MODAL (History: multi-image Agent Refine run) -->
+    <div id="arf-picker-modal" class="modal-overlay hidden"
+         onclick="if(event.target===this)arfClosePicker()">
+        <div class="modal-content arf-modal" style="width:900px; max-width:96%;">
+            <div class="modal-header">
+                <span id="arf-picker-title" style="font-size:13px;">🪄 ARF — step selection</span>
+                <span style="display:flex; align-items:center; gap:6px;">
+                    <button class="btn arf-detach-btn" id="arf-picker-detach" onclick="arfDetach()"
+                            title="Detach the picker into an independent always-on-top window (stays open while a job runs)">⧉</button>
+                    <button class="close-btn" onclick="arfClosePicker()">×</button>
+                </span>
+            </div>
+            <div class="modal-body arf-body">
+                <!-- thumbnails of all steps -->
+                <div class="arf-thumb-col">
+                    <div style="font-size:10px; color:#e6c84a; margin-bottom:4px;">Run steps</div>
+                    <div id="arf-picker-thumbs"></div>
+                    <div style="font-size:10px; color:#888; margin-top:6px;">The <b>last</b> generated image (top) is used by default. Click a step to choose another one.</div>
+                </div>
+                <!-- large preview of the effective image -->
+                <div class="arf-preview-col">
+                    <div class="arf-preview-head">
+                        <span style="font-size:10px; color:#4ade80;">Image that will actually be used (direct path inside the ARF folder):</span>
+                        <button class="btn arf-zoom-btn" id="arf-picker-zoom" onclick="arfToggleZoom()"
+                                title="Limit the preview to the actual pixel size of the image">1:1 max</button>
+                    </div>
+                    <div class="arf-preview-stage" id="arf-preview-stage">
+                        <img id="arf-picker-preview" alt="">
+                    </div>
+                    <div id="arf-picker-dims" style="font-size:11px; color:#8ab4f8; font-variant-numeric:tabular-nums;"></div>
+                    <div id="arf-picker-meta" style="font-size:11px; color:#e6c84a;"></div>
+                    <div class="arf-prompt-wrap" style="flex:0 0 auto;">
+                        <div style="font-size:10px; color:#4ade80; margin-bottom:3px;">Prompt used for this step (click to copy)</div>
+                        <div id="arf-picker-prompt" onclick="copyAgentPrompt(this)"
+                             style="background:#0d0d0d; border:1px solid #333; border-radius:5px; padding:8px; font-size:11px; line-height:1.45; max-height:110px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; cursor:pointer;">…</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span style="font-size:10px; color:#888; margin-right:auto; align-self:center;">Only the chosen image becomes visible (coupled JSON updated). No extra file is created.</span>
+                <button class="btn arf-del-btn" id="arf-picker-delete" onclick="arfDeleteStep()"
+                        title="Delete the selected step image from the ARF run folder">🗑 Delete step</button>
+                <button class="btn hidden" id="arf-picker-agent" onclick="arfOpenInAgent()"
+                        style="background:#2a2a3a; color:#b0a0f0; font-weight:bold; border:1px solid #5a5a8a;"
+                        title="Open the full run in the 🪄 Agent Refine panel (goal, models, references, steps)">🪄 Open in Agent Refine</button>
+                <button class="btn" style="background:#2a3a1a; color:#aaa;" onclick="arfClosePicker()">Cancel</button>
+                <button class="btn" id="arf-picker-use" onclick="arfApplyStep()"
+                        style="background:#4a3a12; color:#e6c84a; font-weight:bold; border:1px solid #6a5a1a;">✔ Use this step</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/config.js?v=1"></script>
+    <script src="js/history.js?v=35"></script>
+    <script src="js/init.js?v=13"></script>
+    <script src="js/state.js"></script>
+    <script src="js/models.js?v=4"></script>
+    <script src="js/model_downloader.js?v=1"></script>
+    <script src="js/upload.js?v=8"></script>
+    <script src="js/mask_editor.js?v=4"></script>
+    <script src="js/lora.js?v=3"></script>
+    <script src="js/generate.js?v=15"></script>
+    <script src="js/utils.js?v=1"></script>
+    <script src="js/ui.js?v=10"></script>
+    <script src="js/agent.js?v=31"></script>
+    <script src="js/JSONViewer.js"></script>
+    <script src="js/preferences.js?v=8"></script>
+    <script src="js/local_save.js?v=1"></script>
+    <script src="js/translate.js?v=2"></script>
+    <script src="js/main.js?v=7"></script>
+</body>
+
+</html>

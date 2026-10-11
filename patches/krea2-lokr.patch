@@ -1,0 +1,31 @@
+diff --git a/src/model/adapter/lora_ops.cpp b/src/model/adapter/lora_ops.cpp
+index 7dacfd1..d672dca 100644
+--- a/src/model/adapter/lora_ops.cpp
++++ b/src/model/adapter/lora_ops.cpp
+@@ -65,7 +65,15 @@ ggml_tensor* ggml_ext_lokr_forward(
+     ggml_tensor* hb;
+ 
+     if (!is_conv) {
+-        int batch          = (int)h->ne[1];
++        // The input may be a 3D activation ([features, tokens, batch]) as produced by
++        // e.g. Krea2 attention/MLP linears. Flatten every trailing dimension into the
++        // LoKr batch axis and restore the original shape on the way out, otherwise the
++        // reshape below sees a mismatch and GGML aborts.
++        const int64_t h_ne1      = h->ne[1];
++        const int64_t h_ne2      = h->ne[2];
++        const int64_t h_ne3      = h->ne[3];
++        const bool restore_shape = (h_ne2 > 1 || h_ne3 > 1);
++        int batch          = (int)(h_ne1 * h_ne2 * h_ne3);
+         int merge_batch_uq = batch;
+         int merge_batch_vp = batch;
+ 
+@@ -119,6 +127,9 @@ ggml_tensor* ggml_ext_lokr_forward(
+ 
+         ggml_tensor* hc  = ggml_transpose(ctx, hc_t);
+         ggml_tensor* out = ggml_reshape_2d(ctx, ggml_cont(ctx, hc), up * vp, batch);
++        if (restore_shape) {
++            out = ggml_reshape_3d(ctx, out, up * vp, h_ne1, h_ne2 * h_ne3);
++        }
+         return ggml_ext_scale(ctx, out, scale);
+     } else {
+         int batch = (int)h->ne[3];

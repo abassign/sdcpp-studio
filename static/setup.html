@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup - sdcpp-studio</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            border-bottom: 1px solid #333;
+            background: #1a1a1a;
+            height: 60px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            margin: 0;
+            color: #00e676;
+            font-size: 1.5em;
+        }
+
+        .nav-link {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 1em;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .modules-panel {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+            max-width: 50%;
+        }
+
+        .module-card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .module-card:hover {
+            border-color: #444;
+        }
+
+        .module-info {
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .module-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .module-desc {
+            font-size: 0.9em;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-installed {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .status-missing {
+            background: #b71c1c;
+            color: #ef9a9a;
+        }
+
+        .status-processing {
+            background: #0277bd;
+            color: #81d4fa;
+        }
+
+        button {
+            background: #2962ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0039cb;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .logs-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .logs-header {
+            padding: 10px 20px;
+            background: #111;
+            border-bottom: 1px solid #333;
+            font-size: 0.9em;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #logs {
+            flex: 1;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #0f0;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #333;
+            width: 500px;
+            border-radius: 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input {
+            margin-top: 3px;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .checkbox-group small {
+            display: block;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .btn-primary {
+            background: #2962ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        .btn-primary:hover {
+            background: #0039cb;
+        }
+
+        .section-title {
+            color: #ccc;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-check {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .btn-check:hover {
+            background: #444;
+        }
+
+        .status-icon {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .status-valid {
+            color: #00e676;
+        }
+
+        .status-invalid {
+            color: #ff1744;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Setup Manager</h1>
+        <div style="display:flex; gap:15px;">
+            <a href="#" onclick="openSettings()" class="nav-link">Settings</a>
+            <a href="/" class="nav-link">Back to Studio</a>
+        </div>
+    </header>
+
+    <!-- Status Bar (similar to main page) -->
+    <div id="status-bar" class="status-bar">
+        <div class="status-bar-content">
+            <span id="status-text" class="status-text">Ready</span>
+        </div>
+        <span id="status-activity" class="status-timer" style="display:none;">⏳ Processing...</span>
+    </div>
+
+    <div class="main-container">
+        <div class="modules-panel">
+            <h2 style="margin-top:0; margin-bottom:20px; color:#ccc;">Available Modules</h2>
+            <div id="module-container">
+                <div style="text-align:center; color:#777; padding:40px;">Loading...</div>
+            </div>
+        </div>
+
+        <div class="logs-panel">
+            <div class="logs-header">
+                <span>TERMINAL OUTPUT</span>
+                <span id="activity-indicator" style="display:none; color:#0277bd;">Processing...</span>
+            </div>
+            <div id="logs">Select a module to install...</div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettings()">&times;</span>
+            <h2 style="margin-top:0;">Settings</h2>
+            <p style="color:#888; font-size:0.9em;">Configure API keys and generation settings.</p>
+
+            <div class="section-title">API Keys</div>
+
+            <div class="form-group">
+                <label>Hugging Face Token</label>
+                <div class="input-group">
+                    <input type="password" id="hf_token" placeholder="hf_...">
+                    <button class="btn-check" onclick="verifyToken('hf')">Check</button>
+                    <span id="hf_status" class="status-icon"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Civitai API Key</label>
+                <div class="input-group">
+                    <input type="password" id="civitai_token" placeholder="civitai_...">
+                    <button class="btn-check" onclick="verifyToken('civitai')">Check</button>
+                    <span id="civitai_status" class="status-icon"></span>
+                </div>
+            </div>
+
+            <div class="section-title">FLUX Settings</div>
+            <div style="font-size:0.85em; color:#888; margin-bottom:15px;">
+                Configure the Hugging Face repositories for FLUX models. If files are missing or a download fails,
+                please verify the paths and modify them here or manually in `settings.json`.
+            </div>
+
+            <div class="form-group">
+                <label>FLUX.1 GGUF Repository</label>
+                <input type="text" id="flux1_repo" placeholder="unsloth/FLUX.1-dev-GGUF"
+                    style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+            </div>
+
+            <div class="form-group">
+                <label>FLUX.2 GGUF Repository</label>
+                <input type="text" id="flux2_repo" placeholder="unsloth/FLUX.2-klein-9B-GGUF"
+                    style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+            </div>
+
+            <div class="form-group">
+                <label>FLUX VAE Repository</label>
+                <input type="text" id="flux_vae_repo" placeholder="black-forest-labs/FLUX.1-dev"
+                    style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+            </div>
+
+            <div class="form-group">
+                <label>FLUX Text Encoders Repository</label>
+                <input type="text" id="flux_clip_repo" placeholder="comfyanonymous/flux_text_encoders"
+                    style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+            </div>
+
+            <div class="section-title">Generation Settings</div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="vae_tiling_enabled" checked>
+                <label for="vae_tiling_enabled">
+                    Enable VAE Tiling
+                    <small>Use tiling for resolutions >2MP to reduce VRAM</small>
+                </label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="auto_fix_models" checked>
+                <label for="auto_fix_models">
+                    Auto-fix GGUF Models
+                    <small>Automatically repair tensor names for SD-CPP</small>
+                </label>
+            </div>
+            <div class="form-group">
+                <label>Qwen Image Edit Model</label>
+                <select id="qwen_image_edit_model_select" style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+                    <option value="/app/models/checkpoints/qwen-image-edit-2511-Q4_K_M.gguf">qwen-image-edit-2511-Q4_K_M.gguf</option>
+                    <option value="/app/models/checkpoints/qwen-image-edit-2511-Q8_0.gguf">qwen-image-edit-2511-Q8_0.gguf</option>
+                </select>
+                <input type="hidden" id="qwen_image_edit_model_path" value="">
+                <small style="color:#666;">Select the GGUF model file to use for image editing</small>
+            </div>
+
+            <div class="form-group">
+                <label>Qwen Image Edit GGUF Repository</label>
+                <input type="text" id="qwen_image_edit_repo" placeholder="city96/Qwen2.5-VL-7B-Image-Edit-GGUF"
+                    style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+            </div>
+
+            <div class="form-group">
+                <label>Qwen VL GGUF Repository</label>
+                <input type="text" id="qwen_vl_repo" placeholder="city96/Qwen2.5-VL-7B-Instruct-GGUF"
+                    style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+            </div>
+
+            <div class="section-title">Storage</div>
+
+            <div style="background:#3a2a1a; border:1px solid #5a4a2a; padding:10px 12px; border-radius:4px; margin-bottom:15px; font-size:0.85em; color:#e0c080;">
+                <strong>Container paths.</strong> Enter the paths as seen <em>inside the container</em> (default: <code>/app/models</code> and <code>/app/outputs</code>).<br>
+                The actual files live on the host at the bind-mount targets configured in <code>go.sh</code> (lines <code>OUTPUTS_DIR</code> / <code>MODELS_DIR</code>).<br>
+                <strong>To move data to a different host folder, edit <code>go.sh</code> directly</strong> and restart the container — this popup only changes the in-container view.
+            </div>
+
+            <div class="form-group">
+                <label>Models Directory <small style="color:#888;">(container path)</small></label>
+                <div style="font-size:0.8em; color:#666; margin-bottom:5px;">Current: <span
+                        id="current_models_path">Loading...</span></div>
+                <div class="input-group">
+                    <input type="text" id="models_dir"
+                        placeholder="/app/models"
+                        style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+                    <button class="btn-check" onclick="browseDirectory('models_dir')">Browse</button>
+                    <button class="btn-check" onclick="validateStoragePath('models_dir')">Check</button>
+                </div>
+                <div id="models_dir_validation" style="margin-top:5px; font-size:0.8em;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Outputs Directory <small style="color:#888;">(container path)</small></label>
+                <div style="font-size:0.8em; color:#666; margin-bottom:5px;">Current: <span
+                        id="current_outputs_path">Loading...</span></div>
+                <div class="input-group">
+                    <input type="text" id="outputs_dir"
+                        placeholder="/app/outputs"
+                        style="width:100%; padding:10px; background:#111; border:1px solid #333; color:#fff; border-radius:4px;">
+                    <button class="btn-check" onclick="browseDirectory('outputs_dir')">Browse</button>
+                    <button class="btn-check" onclick="validateStoragePath('outputs_dir')">Check</button>
+                </div>
+                <div id="outputs_dir_validation" style="margin-top:5px; font-size:0.8em;"></div>
+            </div>
+
+            <!-- Docker Status Indicator -->
+            <div id="docker-status"
+                style="margin-bottom:15px; padding:8px; background:#222; border-radius:4px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:0.85em; color:#888;">Docker:</span>
+                <span id="docker-status-indicator" style="font-size:0.85em;">Loading...</span>
+            </div>
+
+            <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+            <div id="save-status" style="margin-top:10px; text-align:center;"></div>
+            <div id="docker-restart-warning"
+                style="margin-top:15px; padding:10px; background:#ff9800; color:#000; border-radius:4px; display:none; text-align:center;">
+                <strong>⚠ Docker restart required!</strong><br>
+                <span style="font-size:0.85em;">The storage paths have been updated. You need to restart Docker to apply
+                    changes.</span><br>
+                <button id="restart-docker-btn" class="btn-check" style="margin-top:8px;"
+                    onclick="restartDocker()">Restart Docker Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const moduleContainer = document.getElementById('module-container');
+        const logsDiv = document.getElementById('logs');
+        const activityIndicator = document.getElementById('activity-indicator');
+        const modal = document.getElementById('settingsModal');
+        const statusDiv = document.getElementById('save-status');
+        const hfInput = document.getElementById('hf_token');
+        const civitaiInput = document.getElementById('civitai_token');
+
+        let activeProcess = false;
+
+        async function fetchModules() {
+            try {
+                const res = await fetch('/api/setup/modules');
+                const data = await res.json();
+                renderModules(data.modules);
+            } catch (e) {
+                moduleContainer.innerHTML = '<div style="color:red;">Error: ' + e + '</div>';
+            }
+        }
+
+        // Cache for GGUF files
+        let fluxGgufFiles = [];
+        let fluxGgufDownloaded = [];
+
+        async function loadFluxGgufFiles() {
+            try {
+                const res = await fetch('/api/setup/flux/gguf/list');
+                const data = await res.json();
+                // API returns dict with "gguf_files" key containing the list
+                if (data.gguf_files && Array.isArray(data.gguf_files)) {
+                    fluxGgufFiles = data.gguf_files;
+                } else if (Array.isArray(data)) {
+                    // Legacy format
+                    fluxGgufFiles = data;
+                } else {
+                    console.error('Unexpected response format:', data);
+                    fluxGgufFiles = [];
+                }
+            } catch (e) {
+                console.error('Error loading GGUF files:', e);
+                fluxGgufFiles = [];
+            }
+        }
+
+        async function refreshGgufList() {
+            logsDiv.innerHTML = '> Refreshing GGUF file list...\n';
+            await loadFluxGgufFiles();
+            renderFluxGgufPanel();
+            logsDiv.innerHTML += '> Found ' + fluxGgufFiles.length + ' GGUF files.\n';
+        }
+
+        function formatSize(sizeMB) {
+            if (sizeMB >= 1024) {
+                return (sizeMB / 1024).toFixed(1) + ' GB';
+            }
+            return sizeMB + ' MB';
+        }
+
+        function toggleFluxPanel() {
+            var panel = document.getElementById('flux-gguf-panel');
+            var icon = document.getElementById('flux-toggle-icon');
+            if (!panel || !icon) return;
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                panel.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+
+        function renderFluxGgufPanel() {
+            const panel = document.getElementById('flux-gguf-panel');
+            if (!panel) return;
+
+            if (fluxGgufFiles.length === 0) {
+                panel.innerHTML = '<div style="color:#888; padding:10px;">Loading GGUF files... <button onclick="refreshGgufList()" style="margin-left:10px; padding:4px 8px; font-size:0.8em;">↻ Refresh</button></div>';
+                return;
+            }
+
+            let html = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
+            html += '<span style="color:#ccc; font-size:0.9em;">Available GGUF Models (' + fluxGgufFiles.length + ')</span>';
+            html += '<button onclick="refreshGgufList()" style="padding:4px 8px; font-size:0.75em; background:#333;">↻ Refresh</button>';
+            html += '</div>';
+            html += '<div style="max-height:300px; overflow-y:auto;">';
+            html += '<table style="width:100%; border-collapse:collapse; font-size:0.85em;">';
+            html += '<tr style="background:#222; position:sticky; top:0;"><th style="padding:8px; text-align:left; color:#888;">File</th><th style="padding:8px; text-align:right; color:#888;">Size</th><th style="padding:8px; text-align:center; color:#888;">Action</th></tr>';
+
+            fluxGgufFiles.forEach(file => {
+                // Use downloaded flag from API response (checks local files)
+                const isDownloaded = file.downloaded || fluxGgufDownloaded.includes(file.name);
+                let btnText, btnStyle, btnDisabled;
+
+                if (isDownloaded) {
+                    btnText = '✓ Downloaded';
+                    btnStyle = 'background:#1b5e20; color:#a5d6a7;';
+                    btnDisabled = 'disabled';
+                } else {
+                    btnText = 'Download';
+                    btnStyle = activeProcess ? 'background:#444; color:#888;' : 'background:#2962ff;';
+                    btnDisabled = activeProcess ? 'disabled' : '';
+                }
+
+                html += `<tr style="border-bottom:1px solid #333;">
+                    <td style="padding:8px; color:#ccc;">${file.name}</td>
+                    <td style="padding:8px; text-align:right; color:#888;">${formatSize(file.size_mb)}</td>
+                    <td style="padding:8px; text-align:center;">
+                        <button onclick="downloadGguf('${file.name}')" ${btnDisabled} style="${btnStyle} padding:4px 12px; font-size:0.8em; border:none; border-radius:4px; cursor:pointer;">
+                            ${btnText}
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            html += '</table></div>';
+            panel.innerHTML = html;
+        }
+
+        async function downloadGguf(filename) {
+            if (activeProcess) return;
+            activeProcess = true;
+
+            document.getElementById('status-text').textContent = 'Downloading ' + filename + '...';
+            document.getElementById('status-activity').style.display = 'inline';
+            activityIndicator.style.display = 'inline';
+            logsDiv.innerHTML = '> Starting download for ' + filename + '...\n';
+
+            try {
+                const response = await fetch('/api/setup/flux/gguf/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gguf_file: filename })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    logsDiv.innerHTML += '\n[SUCCESS] ' + data.message + '\n';
+                    fluxGgufDownloaded.push(filename);
+                    renderFluxGgufPanel();
+                } else {
+                    logsDiv.innerHTML += '\n[ERROR] ' + (data.detail || 'Unknown error') + '\n';
+                }
+            } catch (e) {
+                logsDiv.innerHTML += '\n[CRITICAL] ' + e + '\n';
+            }
+
+            finishProcess();
+        }
+
+        function renderModules(modules) {
+            moduleContainer.innerHTML = '';
+            modules.forEach(mod => {
+                let statusClass = 'status-missing';
+                let statusText = 'Missing';
+                if (mod.status === 'installed') { statusClass = 'status-installed'; statusText = 'Installed'; }
+                if (mod.status === 'processing') { statusClass = 'status-processing'; statusText = 'Working'; }
+
+                const isDisabled = activeProcess;
+
+                const card = document.createElement('div');
+                card.className = 'module-card';
+
+                // Special UI for FluxSetup - add collapsible GGUF panel
+                let extraControls = '';
+                if (mod.id === 'FluxSetup') {
+                    extraControls = `
+                        <div style="margin-top:10px;">
+                            <div onclick="toggleFluxPanel()" style="cursor:pointer; display:flex; align-items:center; gap:8px; color:#888; font-size:0.85em;">
+                                <span id="flux-toggle-icon">▶</span>
+                                <span>Show/Hide GGUF Models</span>
+                            </div>
+                            <div id="flux-gguf-panel" style="margin-top:10px; background:#1a1a1a; border:1px solid #333; border-radius:4px; padding:10px; display:none;">
+                                <div style="color:#888; padding:10px;">Loading GGUF files...</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="module-info">
+                        <div class="module-title">
+                            ${mod.name}
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="module-desc">${mod.description}</div>
+                        ${mod.id === 'FluxSetup' ? '<div style="font-size:0.8em; color:#666; margin-top:5px;">Install All: Downloads VAE + CLIP-L + T5-XXL encoders (select GGUF from list below)</div>' : ''}
+                        ${extraControls}
+                    </div>
+                    <button onclick="installModule('${mod.id}')" ${isDisabled ? 'disabled' : ''}>
+                        ${mod.status === 'installed' ? 'Re-Install All' : 'Install All'}
+                    </button>
+                `;
+                moduleContainer.appendChild(card);
+
+                // Load GGUF files for FluxSetup after rendering
+                if (mod.id === 'FluxSetup') {
+                    loadFluxGgufFiles().then(() => {
+                        renderFluxGgufPanel();
+                    });
+                }
+            });
+        }
+
+        async function installModule(moduleId) {
+            if (activeProcess) return;
+            activeProcess = true;
+
+            // For FluxSetup, "Install All" downloads all GGUF + encoders
+            if (moduleId === 'FluxSetup') {
+                logsDiv.innerHTML = '> Starting full installation for FLUX-1 (VAE + CLIP-L + T5-XXL encoders)...\n';
+            } else {
+                logsDiv.innerHTML = '> Starting installation for ' + moduleId + '...\n';
+            }
+
+            // Update status bar
+            document.getElementById('status-text').textContent = 'Installing ' + moduleId + '...';
+            document.getElementById('status-activity').style.display = 'inline';
+
+            // Existing activity indicator in logs-header
+            activityIndicator.style.display = 'inline';
+            renderModulesCached();
+
+            try {
+                const response = await fetch('/api/setup/install', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        module_id: moduleId,
+                        selected_gguf: null  // null means download all
+                    })
+                });
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const content = line.slice(6);
+                            if (content.startsWith('LOG|')) {
+                                logsDiv.textContent += content.slice(4) + '\n';
+                            } else if (content.startsWith('DONE')) {
+                                logsDiv.innerHTML += '\n[SUCCESS] Finished\n';
+                                finishProcess();
+                            } else if (content.startsWith('ERR')) {
+                                logsDiv.innerHTML += '\n[ERROR] ' + content.slice(4) + '\n';
+                                finishProcess();
+                            }
+                        }
+                    }
+                    logsDiv.scrollTop = logsDiv.scrollHeight;
+                }
+            } catch (e) {
+                logsDiv.innerHTML += '\n[CRITICAL] ' + e + '\n';
+                finishProcess();
+            }
+        }
+
+        function finishProcess() {
+            activeProcess = false;
+            // Update status bar
+            document.getElementById('status-text').textContent = 'Ready';
+            document.getElementById('status-activity').style.display = 'none';
+            // Existing activity indicator
+            activityIndicator.style.display = 'none';
+            fetchModules();
+        }
+
+        function renderModulesCached() {
+            // Re-render without re-fetching
+            fetchModules();
+        }
+
+        fetchModules();
+
+        // --- Docker Status ---
+        async function loadDockerStatus() {
+            const indicator = document.getElementById('docker-status-indicator');
+            const restartBtn = document.getElementById('restart-docker-btn');
+
+            try {
+                const res = await fetch('/api/config/docker/status');
+                const data = await res.json();
+
+                if (!data.socket_available) {
+                    indicator.innerHTML = '<span style="color:#f44336;">Socket not available</span>';
+                    if (restartBtn) restartBtn.disabled = true;
+                    return;
+                }
+
+                if (data.container_running) {
+                    indicator.innerHTML = '<span style="color:#4caf50;">● Running (' + data.gpu_type.toUpperCase() + ')</span>';
+                } else if (data.container_exists) {
+                    indicator.innerHTML = '<span style="color:#ff9800;">○ Stopped</span>';
+                } else {
+                    indicator.innerHTML = '<span style="color:#9e9e9e;">Not configured</span>';
+                }
+
+                if (restartBtn) restartBtn.disabled = false;
+            } catch (e) {
+                indicator.innerHTML = '<span style="color:#f44336;">Error loading status</span>';
+                if (restartBtn) restartBtn.disabled = true;
+            }
+        }
+
+        // --- Settings ---
+        function openSettings() {
+            modal.style.display = 'block';
+            loadConfig();
+            loadDockerStatus();
+        }
+
+        function closeSettings() {
+            modal.style.display = 'none';
+            statusDiv.textContent = '';
+            // Hide restart warning
+            document.getElementById('docker-restart-warning').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) closeSettings();
+        }
+
+        // Make modal draggable
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        const modalContent = document.querySelector('#settingsModal .modal-content');
+
+        modalContent.addEventListener('mousedown', function (e) {
+            // Only drag if clicking on the header area (h2 or close button area)
+            if (e.target.tagName === 'H2' || e.target.classList.contains('close')) {
+                isDragging = true;
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                modalContent.style.cursor = 'move';
+            }
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+
+                // Apply transform for smooth dragging
+                modalContent.style.transform = `translate(${currentX}px, ${currentY}px)`;
+            }
+        });
+
+        document.addEventListener('mouseup', function () {
+            if (isDragging) {
+                isDragging = false;
+                modalContent.style.cursor = 'default';
+            }
+        });
+
+        // Reset position when modal opens
+        openSettings = function() {
+            modal.style.display = 'block';
+            xOffset = 0;
+            yOffset = 0;
+            modalContent.style.transform = 'translate(0px, 0px)';
+            loadConfig();
+            loadDockerStatus();
+        }
+
+        async function loadConfig() {
+            try {
+                // API Keys
+                const res = await fetch('/api/config/secrets');
+                const data = await res.json();
+                hfInput.placeholder = data.hf_token ? '******** (set)' : 'Enter Hugging Face Token';
+                civitaiInput.placeholder = data.civitai_token ? '******** (set)' : 'Enter Civitai API Key';
+                hfInput.value = '';
+                civitaiInput.value = '';
+
+                // Settings
+                const settingsRes = await fetch('/api/config/settings');
+                const settings = await settingsRes.json();
+                document.getElementById('vae_tiling_enabled').checked = settings.vae_tiling_enabled !== false;
+                document.getElementById('auto_fix_models').checked = settings.auto_fix_models !== false;
+
+                // FLUX Settings
+                document.getElementById('flux1_repo').value = settings.flux1_repo || "unsloth/FLUX.1-dev-GGUF";
+                document.getElementById('flux2_repo').value = settings.flux2_repo || "unsloth/FLUX.2-klein-9B-GGUF";
+                document.getElementById('flux_vae_repo').value = settings.flux_vae_repo || "black-forest-labs/FLUX.1-dev";
+                document.getElementById('flux_clip_repo').value = settings.flux_clip_repo || "comfyanonymous/flux_text_encoders";
+
+                // Storage paths - Current shows the ACTUAL path being used
+                if (settings.models_dir_resolved) {
+                    document.getElementById('current_models_path').textContent = settings.models_dir_resolved;
+                }
+                if (settings.outputs_dir_resolved) {
+                    document.getElementById('current_outputs_path').textContent = settings.outputs_dir_resolved;
+                }
+
+                // Input field shows the SAVED custom path (if different from default)
+                // Only populate if user has explicitly set a custom path
+                const defaultModelsPath = '/app/models';
+                const defaultOutputsPath = '/app/outputs';
+
+                if (settings.models_dir && settings.models_dir !== defaultModelsPath) {
+                    document.getElementById('models_dir').value = settings.models_dir;
+                }
+                if (settings.outputs_dir && settings.outputs_dir !== defaultOutputsPath) {
+                    document.getElementById('outputs_dir').value = settings.outputs_dir;
+                }
+                // Set Qwen Image Edit model selection in UI
+                // Try to populate the dropdown dynamically, but keep static options if it fails
+                const select = document.getElementById('qwen_image_edit_model_select');
+                
+                // Add event listener to update hidden input when selection changes
+                select.addEventListener('change', function() {
+                    document.getElementById('qwen_image_edit_model_path').value = this.value;
+                });
+                
+                try {
+                    const modelsRes = await fetch('/api/config/qwen-edit-models');
+                    const modelsData = await modelsRes.json();
+                    
+                    if (modelsData.models && modelsData.models.length > 0) {
+                        // Clear static options and add dynamic ones
+                        select.innerHTML = '';
+                        modelsData.models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.path;
+                            option.textContent = model.name;
+                            select.appendChild(option);
+                        });
+                    }
+                    // If no models found, keep the static options
+                } catch (e) {
+                    console.error('Failed to load Qwen edit models:', e);
+                    // Keep static options
+                }
+                
+                // Set the selected model based on saved setting
+                const savedPath = settings.qwen_image_edit_model_path;
+                if (savedPath) {
+                    // Try to find the saved path in the dropdown
+                    const options = select.options;
+                    let found = false;
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value === savedPath) {
+                            select.selectedIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        // Add the saved path as an option if not found
+                        const option = document.createElement('option');
+                        option.value = savedPath;
+                        option.textContent = savedPath.split('/').pop();
+                        select.appendChild(option);
+                        select.value = savedPath;
+                    }
+                    document.getElementById('qwen_image_edit_model_path').value = savedPath;
+                } else if (select.options.length > 0) {
+                    // Default to first option
+                    select.selectedIndex = 0;
+                    document.getElementById('qwen_image_edit_model_path').value = select.value;
+                }
+                
+                // Set Qwen repos in UI
+                if (settings.qwen_image_edit_repo) {
+                    document.getElementById('qwen_image_edit_repo').value = settings.qwen_image_edit_repo;
+                }
+                if (settings.qwen_vl_repo) {
+                    document.getElementById('qwen_vl_repo').value = settings.qwen_vl_repo;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function saveSettings() {
+            // Save API Keys
+            const apiPayload = {};
+            if (hfInput.value.trim()) apiPayload.hf_token = hfInput.value.trim();
+            if (civitaiInput.value.trim()) apiPayload.civitai_token = civitaiInput.value.trim();
+
+            if (Object.keys(apiPayload).length > 0) {
+                statusDiv.innerHTML = '<span style="color:#aaa;">Saving...</span>';
+                await fetch('/api/config/secrets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiPayload)
+                });
+            }
+
+            // Save Settings
+            const settingsPayload = {
+                vae_tiling_enabled: document.getElementById('vae_tiling_enabled').checked,
+                auto_fix_models: document.getElementById('auto_fix_models').checked,
+                flux1_repo: document.getElementById('flux1_repo').value.trim() || undefined,
+                flux2_repo: document.getElementById('flux2_repo').value.trim() || undefined,
+                flux_vae_repo: document.getElementById('flux_vae_repo').value.trim() || undefined,
+                flux_clip_repo: document.getElementById('flux_clip_repo').value.trim() || undefined,
+                models_dir: document.getElementById('models_dir').value.trim() || undefined,
+                outputs_dir: document.getElementById('outputs_dir').value.trim() || undefined,
+                qwen_image_edit_model_path: document.getElementById('qwen_image_edit_model_path').value.trim() || undefined,
+                qwen_image_edit_repo: document.getElementById('qwen_image_edit_repo').value.trim() || undefined,
+                qwen_vl_repo: document.getElementById('qwen_vl_repo').value.trim() || undefined
+            };
+
+            try {
+                const res = await fetch('/api/config/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settingsPayload)
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // docker_scripts_updated is always [] now: we no longer
+                    // auto-edit go.sh from this popup. Path changes only
+                    // affect newly started processes, so the user must
+                    // restart the container manually to pick them up.
+                    statusDiv.innerHTML = '<span style="color:#0f0;">Saved! Restart the container to apply.</span>';
+                    setTimeout(closeSettings, 2500);
+                } else {
+                    statusDiv.innerHTML = '<span style="color:red;">Error</span>';
+                }
+            } catch (e) {
+                statusDiv.innerHTML = '<span style="color:red;">Error: ' + e + '</span>';
+            }
+        }
+
+        async function verifyToken(type) {
+            const inputId = type === 'hf' ? 'hf_token' : 'civitai_token';
+            const statusId = type === 'hf' ? 'hf_status' : 'civitai_status';
+            const input = document.getElementById(inputId);
+            const statusSpan = document.getElementById(statusId);
+            const token = input.value.trim();
+
+            if (!token) {
+                statusSpan.className = 'status-icon status-invalid';
+                statusSpan.innerHTML = '&#10006; Empty';
+                return;
+            }
+
+            if (token.startsWith('********')) {
+                statusSpan.className = 'status-icon status-invalid';
+                statusSpan.innerHTML = '&#10006; Cannot verify masked token';
+                return;
+            }
+
+            statusSpan.className = 'status-icon';
+            statusSpan.innerHTML = '...';
+
+            try {
+                const res = await fetch('/api/config/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type, token: token })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.valid) {
+                        statusSpan.className = 'status-icon status-valid';
+                        statusSpan.innerHTML = '&#10004; Valid';
+                    } else {
+                        statusSpan.className = 'status-icon status-invalid';
+                        statusSpan.innerHTML = '&#10006; Invalid';
+                    }
+                } else {
+                    statusSpan.className = 'status-icon status-invalid';
+                    statusSpan.innerHTML = '&#10006; Error';
+                }
+            } catch (e) {
+                statusSpan.className = 'status-icon status-invalid';
+                statusSpan.innerHTML = '&#10006; Error';
+            }
+        }
+
+        // --- Storage Paths Validation ---
+        let storageValidation = {
+            models: null,
+            outputs: null
+        };
+
+        async function browseDirectory(inputId) {
+            const fieldName = inputId === 'models_dir' ? 'models' : 'outputs';
+            let selectedPath = '';
+
+            // Try File System Access API first (Chrome/Edge with permission)
+            if ('showDirectoryPicker' in window) {
+                try {
+                    const handle = await window.showDirectoryPicker();
+                    // Use the selected folder name as absolute path (prepend default base)
+                    selectedPath = `/home/user/${handle.name}`;
+                } catch (err) {
+                    // User cancelled or API not supported, fall back to traditional input
+                    console.log('File System Access API not available:', err);
+                }
+            }
+
+            // Fallback: use traditional file input
+            if (!selectedPath) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.style.display = 'none';
+                input.setAttribute('webkitdirectory', '');
+                input.setAttribute('directory', '');
+                input.multiple = false;
+
+                await new Promise((resolve) => {
+                    input.onchange = (e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                            const file = files[0];
+                            const pathParts = file.webkitRelativePath ? file.webkitRelativePath.split('/') : [];
+                            const folderName = pathParts.length > 0 ? pathParts[0] : file.name;
+                            // Use the folder name as absolute path (prepend default base)
+                            selectedPath = `/home/user/${folderName}`;
+                        }
+                        resolve();
+                    };
+                    input.oncancel = () => resolve();
+                    document.body.appendChild(input);
+                    input.click();
+                    setTimeout(() => {
+                        if (document.body.contains(input)) {
+                            document.body.removeChild(input);
+                        }
+                    }, 1000);
+                });
+            }
+
+            // Set the value in the input field
+            const inputField = document.getElementById(inputId);
+            // Ensure absolute path for Docker mounts
+            if (selectedPath && !selectedPath.startsWith('/')) {
+                // Prepend default base directory
+                selectedPath = `/home/user/${selectedPath}`;
+            }
+            inputField.value = selectedPath;
+
+            // Validate
+            validateStoragePath(inputId);
+        }
+
+        async function validateStoragePath(inputId) {
+            const path = document.getElementById(inputId).value.trim();
+            const field = inputId === 'models_dir' ? 'models' : 'outputs';
+            const statusDiv = document.getElementById(inputId === 'models_dir' ? 'models_dir_validation' : 'outputs_dir_validation');
+
+            if (!path) {
+                statusDiv.innerHTML = '<span style="color:#aaa;">Enter a path to validate</span>';
+                storageValidation[field] = null;
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color:#aaa;">Checking...</span>';
+
+            try {
+                // For now, we'll do a simple existence check via API
+                // We could create a /api/config/validate_storage_path endpoint
+                // But for simplicity, we'll check if the path exists and is writable
+                const res = await fetch('/api/config/validate_path', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.valid) {
+                    let msg = `<span style="color:#00e676;">&#10004; Valid path`;
+                    if (data.free_gb) {
+                        msg += ` (Free: ${data.free_gb}GB)`;
+                    }
+                    msg += '</span>';
+                    statusDiv.innerHTML = msg;
+                    storageValidation[field] = path;
+                } else {
+                    statusDiv.innerHTML = `<span style="color:red;">&#10006; ${data.detail || data.message || 'Invalid path'}</span>`;
+                    storageValidation[field] = null;
+                }
+            } catch (e) {
+                // Fallback: just check if path looks valid (non-empty, no obvious issues)
+                statusDiv.innerHTML = `<span style="color:#ff9800;">⚠ Cannot validate (server error)</span>`;
+                storageValidation[field] = null;
+            }
+        }
+
+        // --- Move Models Logic (Legacy - keeping for backward compatibility) ---
+        let validatedPath = null;
+
+        async function validateMove() {
+            const targetPath = document.getElementById('target_model_path').value.trim();
+            const statusDiv = document.getElementById('move_validation_status');
+            const moveBtn = document.getElementById('btn_move_models');
+
+            if (!targetPath) {
+                statusDiv.innerHTML = '<span style="color:red;">Please enter a path</span>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color:#aaa;">Checking path and disk space...</span>';
+            moveBtn.disabled = true;
+            moveBtn.style.background = '#444';
+
+            try {
+                const res = await fetch('/api/setup/validate_move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_path: targetPath })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.valid) {
+                    statusDiv.innerHTML = `<span style="color:#00e676;">&#10004; Valid. Free: ${data.free_gb}GB (Req: ${data.size_gb}GB)</span>`;
+                    moveBtn.disabled = false;
+                    moveBtn.style.background = '#d32f2f'; // Red for caution
+                    moveBtn.textContent = 'Move Models (Cannot Undo)';
+                    validatedPath = targetPath;
+                } else {
+                    statusDiv.innerHTML = `<span style="color:red;">&#10006; ${data.detail || data.message}</span>`;
+                }
+            } catch (e) {
+                statusDiv.innerHTML = `<span style="color:red;">&#10006; Error: ${e}</span>`;
+            }
+        }
+
+        async function executeMove() {
+            if (!validatedPath) return;
+            if (!confirm(`Are you sure you want to move the models directory to:\n${validatedPath}\n\nThis may take a while depending on disk speed.`)) return;
+
+            const statusDiv = document.getElementById('move_validation_status');
+            const moveBtn = document.getElementById('btn_move_models');
+
+            statusDiv.innerHTML = '<span style="color:#0277bd;">Moving files... Please wait...</span>';
+            moveBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/setup/move_models', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_path: validatedPath })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    statusDiv.innerHTML = '<span style="color:#00e676;">&#10004; Move Complete! Restarting server recommended.</span>';
+                    document.getElementById('current_models_path').textContent = data.new_path;
+                    document.getElementById('target_model_path').value = '';
+                    validatedPath = null;
+                } else {
+                    statusDiv.innerHTML = `<span style="color:red;">&#10006; Failed: ${data.detail || 'Unknown error'}</span>`;
+                }
+            } catch (e) {
+                statusDiv.innerHTML = `<span style="color:red;">&#10006; Error: ${e}</span>`;
+            }
+        }
+
+        // --- Docker Restart ---
+        async function restartDocker() {
+            const warningDiv = document.getElementById('docker-restart-warning');
+            warningDiv.innerHTML = '<span style="color:#000;">Stopping Docker container...</span>';
+
+            try {
+                // Stop the container
+                const stopRes = await fetch('/api/config/docker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'stop' })
+                });
+
+                if (stopRes.ok) {
+                    warningDiv.innerHTML = '<span style="color:#000;">Starting Docker container...</span>';
+
+                    // Start the container
+                    const startRes = await fetch('/api/config/docker', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'start' })
+                    });
+
+                    if (startRes.ok) {
+                        warningDiv.innerHTML = '<span style="color:#0f0;">✓ Docker restarted successfully!</span>';
+                        setTimeout(closeSettings, 2000);
+                    } else {
+                        warningDiv.innerHTML = '<span style="color:red;">Error starting container. Please restart manually.</span>';
+                    }
+                } else {
+                    warningDiv.innerHTML = '<span style="color:red;">Error stopping container. Please restart manually.</span>';
+                }
+            } catch (e) {
+                warningDiv.innerHTML = '<span style="color:red;">Error: ' + (e.message || e) + '</span>';
+            }
+        }
+    </script>
+</body>
+
+</html>

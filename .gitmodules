@@ -1,0 +1,3 @@
+[submodule "sdcpp_src"]
+	path = sdcpp_src
+	url = https://github.com/leejet/stable-diffusion.cpp

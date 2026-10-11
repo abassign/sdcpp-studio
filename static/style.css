@@ -1,0 +1,1564 @@
+:root {
+    --bg-dark: #121212;
+    --bg-panel: #1e1e1e;
+    --bg-input: #2d2d2d;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --text-main: #e5e7eb;
+    --text-dim: #9ca3af;
+    --border: #374151;
+    --status-bg: #172554;
+    --error: #ef4444;
+    --warning: #f59e0b;
+}
+
+/* --- GLOBAL RESET --- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    height: 100%;
+    /* Fix for mobile address bars covering vh units */
+    display: flex;
+    flex-direction: column;
+    /* overflow: hidden; Removed to allow body scroll if needed on mobile */
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- HEADER --- */
+.header {
+    height: 50px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.badge {
+    background: #333;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    color: #fbbf24;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 5px;
+    height: 100%;
+    margin-left: 20px;
+    flex: 1;
+    overflow-x: auto; /* Allow scroll if too small */
+    overflow-y: hidden;
+    min-width: 0; /* Allow shrinking below content size */
+    scrollbar-width: none; /* Firefox: hide scrollbar */
+}
+
+/* Chrome/Safari: hide scrollbar */
+.nav-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 0 15px;
+    height: 100%;
+    cursor: pointer;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.nav-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+/* --- MAIN LAYOUT --- */
+.main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    /* Force children to scroll internally */
+    width: 100%;
+    height: 100%;
+    /* Explicit height to match parent */
+    min-height: 0;
+    /* Critical for nested flex containers */
+}
+
+.panel-left {
+    width: 380px;
+    min-width: 320px;
+    max-width: 40%;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 15px;
+    padding-bottom: 120px;
+    /* Ensure space for scrolling past the bottom content */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    /* Allow it to grow */
+    gap: 15px;
+    flex-shrink: 0;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS/Android */
+}
+
+/* --- NEW CONTAINER --- */
+/* --- NEW CONTAINER --- */
+.panel-center-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    /* Contains panel-right and history */
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    /* CRITICAL for flex child scrolling */
+    height: 100%;
+    /* Force full height usage */
+}
+
+@media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column;
+        overflow: hidden;
+        /* Parent container handles scroll */
+    }
+
+    .panel-left {
+        width: 100%;
+        min-width: 0;
+        flex: 1;
+        /* Take up remaining space */
+        min-height: 50%;
+        /* At least half screen */
+        overflow-y: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 80px;
+        font-size: 0.9rem;
+    }
+
+    .panel-center-container {
+        height: 50%;
+        /* Split screen vertically */
+        min-height: 0;
+        /* Ensures inner flex scroll works */
+        flex: none;
+        flex-direction: row;
+        /* Keep history side-by-side with preview even on mobile */
+    }
+
+    .panel-right {
+        /* Remove fixed height, fill container */
+        height: 100%;
+        flex: 1;
+    }
+
+    .history-toggle {
+        right: 0;
+        top: 50%;
+        z-index: 100;
+    }
+}
+
+.panel-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0f0f0f;
+    padding: 10px;
+    gap: 10px;
+    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
+    /* CRITICAL for flex child scrolling */
+}
+
+/* --- FORM ELEMENTS --- */
+.group {
+    background: #252526;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    /* Crucial to avoid dropdown clipping */
+    overflow: visible !important;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+textarea:focus,
+.input-text:focus {
+    outline: 1px solid var(--accent);
+}
+
+.input-text {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px;
+    border-radius: 4px;
+}
+
+/* Rows & Cols */
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.col {
+    flex: 1;
+    min-width: 0;
+}
+
+.col-auto {
+    width: auto;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.full-width {
+    width: 100%;
+}
+
+/* --- BUTTONS --- */
+.btn {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.btn-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    padding: 0;
+    transition: transform 0.2s;
+}
+
+.btn-circle:hover {
+    transform: scale(1.1);
+    background: var(--accent-hover);
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: black;
+}
+
+.btn-stop-active {
+    background: rgba(245, 158, 11, 0.5) !important;
+    /* 50% Intensity */
+    color: #ffaaaa !important;
+    /* Soft Light Red */
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+    box-shadow: none;
+    font-weight: 900;
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+
+.btn-sm {
+    background: #374151;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.btn-orig {
+    background: var(--warning);
+    color: black;
+}
+
+.btn-dashed {
+    width: 100%;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    padding: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.ratios {
+    margin-top: 5px;
+    justify-content: space-between;
+}
+
+/* --- UPLOAD ZONE --- */
+.upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+#upload-text {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.uploaded-preview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 6px;
+    border: 2px solid var(--accent);
+    margin-top: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #000;
+    object-fit: contain;
+}
+
+.swap-btn {
+    align-self: center;
+    background: #374151;
+    border: 1px solid #4b5563;
+    color: white;
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 10px;
+}
+
+.swap-btn span {
+    font-size: 18px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.swap-btn:hover {
+    background: #3d3d3d !important;
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+.swap-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- LORA SECTION (FIXED & ROBUST) --- */
+.lora-section {
+    background-color: #262626;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    overflow: visible !important;
+    /* CRITICAL */
+}
+
+#lora-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    overflow: visible !important;
+}
+
+.lora-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    position: relative;
+    z-index: 50;
+    width: 100%;
+    /* Full width */
+}
+
+.lora-select {
+    flex: 1;
+    /* Take remaining space */
+    min-width: 0;
+    /* Prevent overflow */
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    border: 1px solid #555;
+    padding: 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    /* Custom Arrow */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right .7em top 50%;
+    background-size: .65em auto;
+    padding-right: 1.5em;
+    text-overflow: ellipsis;
+}
+
+.lora-select:hover {
+    border-color: var(--accent);
+}
+
+.lora-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.lora-num {
+    width: 65px;
+    /* Fixed width */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+    background-color: #1a1a1a;
+    color: #fbbf24;
+    border: 1px solid #555;
+    padding: 6px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.lora-del {
+    width: 25px;
+    height: 30px;
+    flex-shrink: 0;
+    /* Prevent shrinking */
+    background-color: var(--error);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- OUTPUT AREAS --- */
+/* Status Bar */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--status-bg);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 0 10px;
+    height: 36px;
+    color: white;
+    font-size: 13px;
+    gap: 15px;
+    flex-shrink: 0;
+    width: 100%;
+    /* Force full width */
+    min-width: 100%;
+    /* Ensure it spans properly */
+    box-sizing: border-box;
+    /* Include padding in width */
+}
+
+.status-icon {
+    font-weight: bold;
+    color: #60a5fa;
+    text-transform: uppercase;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.status-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Consolas', monospace;
+    color: #dbeafe;
+}
+
+.status-timer {
+    font-weight: bold;
+    font-family: monospace;
+    font-size: 14px;
+    color: #4ade80;
+    background: #000000;
+    border: 1px solid #4ade80;
+    padding: 2px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.status-btn {
+    background: #000000;
+    border: 1px solid #4ade80;
+    color: #4ade80;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    height: 25px;
+    /* Match timer height roughly if needed, or let padding handle it */
+}
+
+.status-btn:hover {
+    background: #4ade80;
+    color: #000;
+}
+
+/* Image Result */
+.image-area {
+    flex: 1;
+    background: repeating-linear-gradient(45deg, #1a1a1a 0, #1a1a1a 10px, #202020 10px, #202020 20px);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    min-height: 0;
+}
+
+#result-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.placeholder {
+    color: #555;
+    font-size: 20px;
+    font-weight: bold;
+    user-select: none;
+}
+
+/* Text Result (I2T) */
+.text-area-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Image Toolbar */
+.image-toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    background: #1a1a1a;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+.action-btn {
+    min-width: 80px;
+    text-align: center;
+    background: #374151;
+    color: white;
+    border: 1px solid #4b5563;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.text-box-label {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-left: 2px;
+}
+
+.text-box {
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    overflow-y: auto;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.text-box.collapsed {
+    flex: 0;
+    max-height: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    margin: 0;
+}
+
+.thinking {
+    flex: 1;
+    background-color: #1a1a1a;
+    color: #a0aec0;
+    font-style: italic;
+    border-left: 3px solid #718096;
+    /* max-height removed to allow filling available space */
+    transition: all 0.3s ease;
+}
+
+.answer {
+    flex: 0 1 auto;
+    min-height: 60px;
+    max-height: 70%;
+    /* Cap height to ensure header remains visible */
+    background-color: #0f0f0f;
+    color: #e5e7eb;
+    border-left: 3px solid var(--accent);
+}
+
+/* Console */
+.console-header {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.console {
+    height: 120px;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #4ade80;
+    flex-shrink: 0;
+}
+
+.log-line {
+    margin-bottom: 2px;
+    word-wrap: break-word;
+}
+
+.log-err {
+    color: var(--error);
+}
+
+.log-info {
+    color: #60a5fa;
+}
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+/* --- HISTORY PANEL --- */
+.history-panel {
+    width: 250px;
+    background: #1a1a1a;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Crucial: stops layout expansion */
+    flex: 0 0 auto;
+    /* Don't grow, fixed width (managed by width property) */
+    height: 100%;
+    /* Match parent height exactly */
+    max-height: 100%;
+}
+
+.history-panel.collapsed {
+    width: 0;
+    border: none;
+}
+
+/* COMPARISON SLIDER STYLES */
+.comparison-view {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+.comp-img-container {
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    line-height: 0;
+    /* Removing spacing */
+}
+
+.comp-img {
+    display: block;
+    max-width: 100%;
+    max-height: 600px;
+    /* Limit height to viewport roughly */
+    object-fit: contain;
+    width: auto;
+    height: auto;
+}
+
+/* The overlay contains the "Before" image */
+.comp-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    /* Initial split */
+    height: 100%;
+    overflow: hidden;
+    border-right: 2px solid white;
+    background: #000;
+    /* Fallback */
+    z-index: 10;
+}
+
+/* Identify images inside overlay to ensure they match size exactly */
+#comp-before {
+    /* Important: We render this image at FULL size but clipped by parent width */
+    max-width: none;
+    /* Let it flow, parent clips it */
+    height: 100%;
+    /* Match container height */
+    width: auto;
+    /* Aspect ratio preserved */
+}
+
+.comp-slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: transparent;
+    cursor: ew-resize;
+    z-index: 20;
+}
+
+.slider-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 14px;
+    pointer-events: none;
+    /* Pass events to slider line */
+}
+
+/* Hiding generic result when comparison is active */
+.image-area.comparing #result-img {
+    display: none !important;
+}
+
+.image-area.comparing .placeholder {
+    display: none !important;
+}
+
+.history-header {
+    padding: 10px;
+    background: #252525;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    /* CRITICAL */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 50px;
+    /* Ensure last item is reachable */
+}
+
+/* Toolbar in History Header */
+#history-toolbar {
+    display: flex;
+    gap: 5px;
+}
+
+#history-toolbar .btn-xs {
+    padding: 2px 6px;
+    font-size: 10px;
+    background: #444;
+    border: 1px solid #555;
+    color: #eee;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+#history-toolbar .btn-xs:hover {
+    background: #666;
+}
+
+/* Dynamic History Item Sizes */
+.history-item {
+    background: var(--bg-input);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    margin-bottom: 5px;
+    /* Height will be set by JS via class */
+}
+
+.history-item.size-64 {
+    min-height: 74px;
+}
+
+.history-item.size-128 {
+    min-height: 138px;
+}
+
+.history-item:hover {
+    border-color: var(--accent);
+    background: #333;
+}
+
+.history-thumb {
+    flex-shrink: 0;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+/* Size modifiers */
+.size-64 .history-thumb {
+    width: 64px;
+    height: 64px;
+}
+
+.size-128 .history-thumb {
+    width: 128px;
+    height: 128px;
+}
+
+.history-item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    /* CRITICAL: Ensure full image is visible */
+    display: block;
+}
+
+/* --- IMAGE INPUT REDESIGN --- */
+.input-image-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    /* Align bottom to keep browse buttons aligned top if heights differ */
+    gap: 4px;
+    /* Tight gap */
+    width: 100%;
+    flex-wrap: nowrap;
+    /* FORCE NO WRAP */
+}
+
+.image-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    /* CRITICAL for flex shrinking */
+    max-width: 50%;
+    /* Prevent exceeding half */
+}
+
+.slot-header {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.btn-browse {
+    flex: 1;
+    /* Variable width */
+    padding: 5px;
+    background: #333;
+    color: #e5e7eb;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 28px;
+    /* Fixed height for alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-browse:hover {
+    background: #444;
+}
+
+.btn-delete {
+    width: 28px;
+    /* Square */
+    height: 28px;
+    background: #332222;
+    color: #ff5555;
+    border: 1px solid #552222;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    position: static;
+    /* No longer absolute */
+}
+
+.btn-delete:hover {
+    background: #552222;
+    color: white;
+}
+
+/* Ensure deleted button is hidden if needed */
+.btn-delete.hidden {
+    display: none;
+}
+
+.drop-zone {
+    width: 100%;
+    height: 120px;
+    /* Reduced height to keep it compact */
+    background: #222;
+    border: 1px dashed #444;
+    border-radius: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.drop-zone.dragover {
+    background: #333;
+    border-color: #666;
+}
+
+.drop-zone.has-image {
+    border: 1px solid #444;
+    /* Clean border */
+    background: #000;
+}
+
+/* Hide placeholder when image is present */
+.drop-zone.has-image .placeholder-text {
+    display: none;
+}
+
+.placeholder-text {
+    color: #666;
+    font-size: 11px;
+    pointer-events: none;
+    text-align: center;
+    padding: 5px;
+}
+
+/* Full image visibility */
+.preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* CRITICAL: Auto-resize to fit */
+    display: block;
+}
+
+.preview-img.hidden {
+    display: none;
+}
+
+.swap-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.btn-swap {
+    width: 100%;
+    height: 24px;
+    /* Thin bar */
+    background: #333;
+    color: #e5e7eb;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+}
+
+.btn-swap:hover {
+    background: #444;
+    border-color: var(--accent);
+    color: white;
+}
+
+.btn-swap span {
+    font-weight: bold;
+}
+
+/* Toggle Button */
+.history-toggle {
+    width: 20px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: background 0.2s;
+    user-select: none;
+    z-index: 90;
+}
+
+.history-toggle:hover {
+    background: #333;
+    color: var(--accent);
+}
+
+/* Contextual History Buttons */
+.btn-history-trigger {
+    background: #2a2a2a;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 6px;
+    font-size: 11px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.btn-history-trigger:hover {
+    background: #333;
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* --- SYSTEM LOG DRAWER --- */
+.system-log-drawer {
+    width: 100%;
+    background-color: #000000;
+    border-bottom: 1px solid var(--border);
+    transition: height 0.3s ease, min-height 0.3s ease;
+    overflow: hidden;
+    /* Default Open State Styling (overridden by .collapsed) */
+    height: 150px;
+    resize: vertical;
+    /* Allow user resizing */
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+}
+
+.system-log-drawer.collapsed {
+    height: 0 !important;
+    min-height: 0 !important;
+    border-bottom: none;
+    padding: 0;
+    resize: none;
+    /* Disable resize when closed */
+}
+
+/* Adjust console inside drawer */
+.system-log-drawer .console {
+    flex: 1;
+    background: transparent;
+    padding: 10px;
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 12px;
+    overflow-y: auto;
+    color: #4ade80;
+    white-space: pre-wrap;
+}
+
+.system-log-drawer .console .log-line {
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 2px;
+}
+
+.system-log-drawer .console .log-err {
+    color: #ff6b6b;
+}
+
+.system-log-drawer .console .log-info {
+    color: #4ade80;
+}
+
+/* COMPARISON SLIDER STYLES (Cleaned) */
+.comparison-view {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+.comp-img-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* BOTH images must be absolute and full size to overlap perfectly */
+.comp-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Wrapper for Before Image - Make it a ghost wrapper (full size) */
+.comp-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    /* FORCE FULL WIDTH */
+    height: 100% !important;
+    z-index: 10;
+    pointer-events: none;
+    /* Let clicks pass? No, slider needs events? Slider is separate. */
+    background: transparent;
+    border: none;
+    transform: none;
+    /* remove any centering transforms */
+}
+
+#comp-after {
+    z-index: 1;
+    /* Bottom */
+}
+
+#comp-before {
+    z-index: 2;
+    /* Top */
+    /* Clip Path Managed by JS */
+    clip-path: inset(0 50% 0 0);
+}
+
+.comp-slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: white;
+    cursor: ew-resize;
+    z-index: 20;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.slider-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.image-area.comparing #result-img,
+.image-area.comparing .placeholder {
+    display: none !important;
+}
+
+.comp-img-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    /* Ensure no spill */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 0;
+}
+
+.comp-img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    /* FULL FILL */
+    object-fit: contain;
+    width: auto;
+    height: auto;
+}
+
+/* The overlay contains the "Before" image */
+.comp-overlay {
+    position: absolute;
+    top: 50%;
+    /* Center vertically */
+    left: 50%;
+    /* Start centered */
+    transform: translate(-50%, -50%);
+    /* Center trick to match img pos? No, wait. */
+    /* Overlay approach is tricky with object-fit: contain. 
+       If the image is smaller than container, the overlay needs to match the IMAGE size/pos, not the container.
+       BUT, implementing JS to sync positions is complex.
+       Simpler approach: Both images take 100% of container via object-fit: cover? No, user wants pixel accuracy.
+       
+       Standard trick: 
+       Container is flex center.
+       Images are same size.
+       Overlay is absolute top-left of the CONTAINER? 
+       No, overlay acts as a mask.
+       
+       Let's stick to simple "clip-path" or resizing width of a container that holds the second image.
+       
+       Better CSS for responsive comparison: */
+
+    top: 0;
+    left: 0;
+    width: 50%;
+    /* Controlled by JS width % */
+    height: 100%;
+    overflow: hidden;
+    border-right: 2px solid white;
+    background: transparent;
+    z-index: 10;
+
+    /* Crucial: The inner image must be positioned/sized IDENTICALLY to the background image relative to the container. */
+}
+
+/* We need .comp-overlay to be a window into .comp-before. */
+/* If .comp-img is object-fit: contain, it might have empty bars. */
+/* The overlay must cover the prompt. */
+
+/* REVISED STRATEGY: 
+   .comp-img-container -> Relative.
+   .comp-after -> Absolute Top Left, 100% W/H, Object Fit Contain.
+   .comp-overlay -> Absolute Top Left, 100% H, WIDTH VARIABLE (slider), overflow hidden.
+      .comp-before -> Absolute Top Left, 100% W !! (of container), 100% H. Object Fit Contain.
+   
+   If both have same object-fit and size, they align perfectly.
+   The overlay just clips the 'before' image.
+*/
+
+.comp-img {
+    /* For Absolute strategy */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.comp-overlay {
+    /* Reset from above */
+    transform: none;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 50%;
+    background: #000;
+    /* Background for Before image area? No, transparent or match bg. */
+}
+
+.comp-overlay .comp-img {
+    /* Inner image must maintain full width of PARENT container context to match 'after' image */
+    width: 100vw;
+    /* Trick? No. */
+    width: 100%;
+    /* relative to overlay? No. */
+
+    /* Trick: If overlay is 50%, inner img must be 200% width? No, too hard. */
+    /* Easier: JS sets overlay width. */
+    /* Inner image width should be set to the CONTAINER width. */
+    /* But standard CSS: inside a div of width X, width 100% is X. */
+    /* Solution: Use clip-path on the top image instead of a div wrapper? */
+    /* Yes! clip-path is much easier for alignment. */
+}
+/* --- MODAL --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 600px;
+    max-width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.modal-body {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.file-list-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.file-list-item:last-child {
+    border-bottom: none;
+}
+
+.file-list-item input {
+    margin-right: 10px;
+}
+
+.file-list-item .size {
+    margin-left: auto;
+    color: var(--text-dim);
+    font-size: 11px;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+}
+.close-btn:hover { color: var(--text-main); }

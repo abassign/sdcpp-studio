@@ -1,0 +1,574 @@
+/* --- FORM ELEMENTS --- */
+.group {
+    background: #252526;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    /* Crucial to avoid dropdown clipping */
+    overflow: visible !important;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+textarea:focus,
+.input-text:focus {
+    outline: 1px solid var(--accent);
+}
+
+.input-text {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px;
+    border-radius: 4px;
+}
+
+/* Rows & Cols */
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.col {
+    flex: 1;
+    min-width: 0;
+}
+
+.col-auto {
+    width: auto;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Agent Refine capability gating: a control that the selected models cannot
+   honour is shown greyed-out and non clickable (never silently ignored). */
+.checkbox-container.cap-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+.checkbox-container.cap-disabled input,
+.checkbox-container.cap-disabled .checkmark {
+    cursor: not-allowed;
+}
+#agent-edit-anchor.cap-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+.full-width {
+    width: 100%;
+}
+
+/* --- BUTTONS --- */
+.btn {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.btn-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    padding: 0;
+    transition: transform 0.2s;
+}
+
+.btn-circle:hover {
+    transform: scale(1.1);
+    background: var(--accent-hover);
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: black;
+}
+
+.btn-stop-active {
+    background: rgba(245, 158, 11, 0.5) !important;
+    /* 50% Intensity */
+    color: #ffaaaa !important;
+    /* Soft Light Red */
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+    box-shadow: none;
+    font-weight: 900;
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+
+.btn-sm {
+    background: #374151;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.btn-orig {
+    background: var(--warning);
+    color: black;
+}
+
+.btn-dashed {
+    width: 100%;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    padding: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.ratios {
+    margin-top: 5px;
+    justify-content: space-between;
+}
+
+/* --- SWAP BUTTON --- */
+.swap-btn {
+    align-self: center;
+    background: #374151;
+    border: 1px solid #4b5563;
+    color: white;
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 10px;
+}
+
+.swap-btn span {
+    font-size: 18px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.swap-btn:hover {
+    background: #3d3d3d !important;
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+.swap-btn:active {
+    transform: scale(0.95);
+}
+
+.swap-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.btn-swap {
+    width: 100%;
+    height: 24px;
+    background: #333;
+    color: #e5e7eb;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+}
+
+.btn-swap:hover {
+    background: #444;
+    border-color: var(--accent);
+    color: white;
+}
+
+.btn-swap span {
+    font-weight: bold;
+}
+
+/* --- GUIDANCE OPTIMIZATION TOGGLE SWITCHES --- */
+.guidance-switches {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: center;
+    padding-left: 6px;
+    flex: 0 0 auto;
+}
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 26px;
+    height: 14px;
+    background: var(--bg-input);
+    border-radius: 7px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.toggle-slider::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    left: 2px;
+    top: 2px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+    transform: translateX(12px);
+    background: white;
+}
+
+.toggle-switch .toggle-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--text-dim);
+    transition: color 0.2s;
+}
+
+.toggle-switch input:checked ~ .toggle-label {
+    color: var(--accent);
+}
+
+/* I2T Chat Box - Dark Blue Collapsible Theme */
+#i2t-chat-section {
+    background: #0a1628;
+    border: 1px solid #1a3a5c;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+#i2t-chat-section label {
+    color: #e5e7eb;
+}
+
+#i2t-chat-display {
+    background: #0a1628;
+    border: 1px solid #1a3a5c;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 250px;
+    min-height: 80px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+#i2t-chat-input {
+    width: 100%;
+    min-height: 60px;
+    max-height: 150px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #1a3a5c;
+    background: #0d1b36;
+    color: #e5e7eb;
+    font-size: 13px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+#i2t-chat-input:focus {
+    outline: 1px solid #3b82f6;
+}
+
+#i2t-chat-status {
+    font-size: 11px;
+    color: #4ade80;
+    margin-top: 5px;
+}
+
+/* --- TAGGING DIALOG & PROGRESS POPUP --- */
+.tagging-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tagging-dialog-box {
+    background: #2a2a2a;
+    border: 2px solid #555;
+    border-radius: 10px;
+    padding: 20px;
+    min-width: 380px;
+    max-width: 520px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    cursor: move;
+}
+
+.tagging-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+
+.tagging-dialog-close {
+    background: #555;
+    border: none;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.tagging-dialog-close:hover {
+    background: #777;
+}
+
+.tagging-dialog-body {
+    margin-bottom: 15px;
+}
+
+.tagging-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+}
+
+/* Progress Popup */
+.tagging-progress-popup {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1500;
+}
+
+.tagging-progress-box {
+    background: #1e1e2e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 14px;
+    width: 380px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    cursor: move;
+}
+
+.tagging-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #333;
+}
+
+.tagging-progress-close {
+    background: transparent;
+    border: none;
+    color: #888;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.tagging-progress-close:hover {
+    background: #333;
+    color: #fff;
+}
+
+.tagging-progress-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.tagging-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.tagging-stat-label {
+    color: #888;
+}
+
+.tagging-stat-value {
+    color: #ccc;
+    font-weight: bold;
+}
+
+.tagging-progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.tagging-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #1a5a1a, #2a8a2a);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.tagging-current-image {
+    font-size: 12px;
+    margin-bottom: 6px;
+    min-height: 18px;
+}
+
+.tagging-current-summary {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.tagging-current-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+    min-height: 20px;
+}
+
+.tag-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #2a3a4a;
+    border: 1px solid #3a5a7a;
+    border-radius: 10px;
+    font-size: 10px;
+    color: #8ab;
+}
+
+.tagging-elapsed {
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.tagging-progress-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid #333;
+}

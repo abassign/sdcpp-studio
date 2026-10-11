@@ -1,0 +1,7 @@
+# GBNF Grammar for I2T structured response
+# Forces the model to output valid JSON with thinking and answer fields
+
+root   ::= object
+object ::= "{" ws "\"thinking\":" ws string "," ws "\"answer\":" ws string "}"
+string ::= "\"" ([^"\\] | "\\" .)* "\""
+ws     ::= [ \t\n\r]*

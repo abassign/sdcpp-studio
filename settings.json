@@ -1,0 +1,14 @@
+{
+    "vae_tiling_enabled": true,
+    "auto_fix_models": true,
+    "auto_prefer_bf16_zimage": true,
+    "vae_tiling_threshold_mp": 2,
+    "flux1_repo": "https://huggingface.co/unsloth/FLUX.1-dev-GGUF",
+    "flux2_repo": "https://huggingface.co/unsloth/FLUX.2-klein-9B-GGUF",
+    "flux_vae_repo": "https://huggingface.co/black-forest-labs/FLUX.1-dev",
+    "flux_clip_repo": "https://huggingface.co/comfyanonymous/flux_text_encoders",
+    "qwen_image_edit_repo": "https://huggingface.co/city96/Qwen2.5-VL-7B-Image-Edit-GGUF",
+    "qwen_vl_repo": "https://huggingface.co/city96/Qwen2.5-VL-7B-Instruct-GGUF",
+    "qwen_image_edit_model_path": "/app/models/checkpoints/qwen-image-edit-2511-Q4_K_M.gguf",
+    "agent_critic_prefer": ""
+}

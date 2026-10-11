@@ -1,0 +1,3 @@
+root   ::= object
+object ::= "{\n  \"prompt_prodotto\": \"" string "\",\n  \"risposta\": \"" string "\"\n}"
+string ::= [^"\\x00-\x1F]*

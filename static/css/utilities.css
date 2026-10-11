@@ -1,0 +1,97 @@
+/* --- COMPARISON VIEW --- */
+.comparison-view {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+.comp-img-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 0;
+}
+
+.comp-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Wrapper for Before Image */
+.comp-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    /* Controlled by JS width % */
+    height: 100%;
+    overflow: hidden;
+    border-right: 2px solid white;
+    background: transparent;
+    z-index: 10;
+}
+
+#comp-after {
+    z-index: 1;
+    /* Bottom */
+}
+
+#comp-before {
+    z-index: 2;
+    /* Top */
+    /* Clip Path Managed by JS */
+    clip-path: inset(0 50% 0 0);
+}
+
+.comp-overlay .comp-img {
+    width: 100%;
+}
+
+.comp-slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: white;
+    cursor: ew-resize;
+    z-index: 20;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.slider-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.image-area.comparing #result-img,
+.image-area.comparing .placeholder {
+    display: none !important;
+}

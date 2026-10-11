@@ -51,3 +51,7 @@ venv/
 # --- build artifacts ---
 build/
 dist/
+
+# --- reference copies / merges ---
+*.orig
+*.rej

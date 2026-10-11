@@ -1,0 +1,60 @@
+:root {
+    --bg-dark: #121212;
+    --bg-panel: #1e1e1e;
+    --bg-input: #2d2d2d;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --text-main: #e5e7eb;
+    --text-dim: #9ca3af;
+    --border: #374151;
+    --status-bg: #172554;
+    --system-log-bg: #d4a017;
+    --system-log-text: #000000;
+    --error: #ef4444;
+    --warning: #f59e0b;
+}
+
+/* --- GLOBAL RESET --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    /* Prevent double scrollbars, handle scroll in panels */
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    height: 100%;
+    /* Fix for mobile address bars covering vh units */
+    display: flex;
+    flex-direction: column;
+    /* overflow: hidden; Removed to allow body scroll if needed on mobile */
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
