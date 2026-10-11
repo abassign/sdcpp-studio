@@ -1,0 +1,41 @@
+name: Release
+
+# Publishing a tag like `v0.2.0` creates the GitHub Release automatically,
+# using the matching section of CHANGELOG.md (plus GitHub's auto notes).
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release notes from CHANGELOG.md
+        run: |
+          python3 - "$GITHUB_REF_NAME" > release_notes.md <<'PY'
+          import sys, re
+          tag = sys.argv[1]
+          ver = tag.lstrip("v")
+          try:
+              text = open("CHANGELOG.md", encoding="utf-8").read()
+          except FileNotFoundError:
+              print(f"Release {tag}")
+              sys.exit(0)
+          m = re.search(
+              rf"^##\s*\[{re.escape(ver)}\][^\n]*\n(.*?)(?=^##\s*\[|\Z)",
+              text, re.S | re.M)
+          print(m.group(1).strip() if m else f"Release {tag} — see CHANGELOG.md")
+          PY
+          echo "--- release_notes.md ---"; cat release_notes.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          generate_release_notes: true      # append GitHub's own notes
+          prerelease: ${{ contains(github.ref_name, '-') }}
