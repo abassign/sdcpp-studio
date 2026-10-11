@@ -1182,7 +1182,7 @@ async function arfDetach() {
     if (!win) {
         win = window.open('', 'arfPickerWindow', 'popup=yes,width=940,height=720');
         if (!win) {
-            alert('Popup bloccato dal browser: consenti i popup per staccare la finestra.');
+            alert('Popup blocked by the browser: allow popups to detach the window.');
             return;
         }
     }

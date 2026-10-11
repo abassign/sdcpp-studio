@@ -1067,7 +1067,7 @@
     transition: max-width .15s ease, max-height .15s ease;
 }
 
-/* Doppio click: espansione alla larghezza della colonna (come prima) */
+/* Double click: expand to the column width (as before) */
 .upload-slot.expanded .upload-zone-custom img.uploaded-preview {
     width: 100%;
     max-width: 100%;

@@ -46,7 +46,7 @@ EDIT_WORKER_FAMILIES = {"qwen_image_edit"}
 ANCHOR_MODES = [
     {"id": "hybrid", "label": "Ibrida (originale + precedente)"},
     {"id": "original", "label": "Originale (nessun drift)"},
-    {"id": "chain", "label": "Catena (dalla precedente)"},
+    {"id": "chain", "label": "Chain (from previous)"},
 ]
 
 

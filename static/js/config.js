@@ -10,10 +10,10 @@ window.uploadedImageDims = { w: 0, h: 0 };
 window.i2tFullResponse = "";
 
 /**
- * True se il path punta a un modello Qwen-Image-Edit-family
- * (qwen-image-edit-2511, Qwen-Rapid-*, ...). Questi modelli sono
- * diffusion-only e fanno edit semantico: vanno instradati al worker i2i_edit.
- * Il backend (is_qwen_image_edit_model) fa comunque un check autoritativo.
+ * True if the path points to a Qwen-Image-Edit-family model
+ * (qwen-image-edit-2511, Qwen-Rapid-*, ...). These models are
+ * diffusion-only and perform semantic edits: route them to the i2i_edit worker.
+ * The backend (is_qwen_image_edit_model) still does an authoritative check.
  */
 window.isQwenImageEditModel = function (path) {
     const name = (path || '').split('/').pop() || path || '';

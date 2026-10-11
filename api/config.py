@@ -153,7 +153,7 @@ def update_docker_script(models_dir: str = None, outputs_dir: str = None) -> dic
     
     result = {"status": "success", "updated": []}
     
-    # Scripts to update (go.sh rileva da sé la GPU AMD/NVIDIA)
+    # Scripts to update (go.sh auto-detects the AMD/NVIDIA GPU)
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     scripts = ["go.sh"]
     

@@ -133,7 +133,7 @@ function moveSlot(id, direction) {
 }
 
 /**
- * Restituisce la lista di slot attivi (con immagine caricata e ruolo != 'none')
+ * Return the list of active slots (image loaded and role != 'none')
  * nel formato atteso dal backend: [{path, role}, ...]
  */
 function getImageSlots() {
@@ -150,7 +150,7 @@ function getSlot(id) {
 }
 
 /**
- * Renderizza tutti gli slot nel container DOM.
+ * Render all slots into the DOM container.
  * IMPORTANTE: ricostruisce il DOM mantenendo lo state (path, preview, ruolo).
  */
 function renderSlots() {
@@ -510,13 +510,13 @@ function showPreviewFromPath(serverPath, slot) {
 // =============================================================================
 
 const ROLE_LABELS = {
-    init:    { badge: '🎯 Init Image',   hint: "L'immagine di partenza da modificare" },
-    ref:     { badge: '🎨 Reference',    hint: "Riferimento stilistico per guidare la generazione" },
-    face:    { badge: '👤 Face Source',  hint: "Foto da cui estrarre il volto (face swap con PhotoMaker)" },
-    mask:    { badge: '🎭 Mask',         hint: "Maschera: bianco = area da modificare, nero = preservare" },
-    control: { badge: '📐 Control',      hint: "Guida strutturale (Canny edge, depth, pose)" },
-    blend:   { badge: '🔄 Blend',        hint: "Fusa con init image tramite Mix Ratio (pixel blend)" },
-    none:    { badge: '🚫 Disabled',     hint: "Slot non usato. Seleziona un ruolo per attivarlo." }
+    init:    { badge: '🎯 Init Image',   hint: "The starting image to modify" },
+    ref:     { badge: '🎨 Reference',    hint: "Style reference to guide generation" },
+    face:    { badge: '👤 Face Source',  hint: "Photo to extract the face from (face swap with PhotoMaker)" },
+    mask:    { badge: '🎭 Mask',         hint: "Mask: white = area to modify, black = preserve" },
+    control: { badge: '📐 Control',      hint: "Structural guide (Canny edge, depth, pose)" },
+    blend:   { badge: '🔄 Blend',        hint: "Blended with the init image via Mix Ratio (pixel blend)" },
+    none:    { badge: '🚫 Disabled',     hint: "Slot unused. Pick a role to enable it." }
 };
 
 function getRoleInfo(role) {

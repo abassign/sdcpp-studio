@@ -18,7 +18,7 @@ async function loadServerConfig() {
 }
 
 async function initApp() {
-    // Carica la configurazione del server PRIMA di tutto
+    // Load the server configuration FIRST
     await loadServerConfig();
 
     // Slider listeners
@@ -58,7 +58,7 @@ async function initApp() {
     }
 
 
-    // Usa il percorso dinamico dei modelli dalla configurazione
+    // Use the dynamic models path from the configuration
     if (loraFolderInput) loraFolderInput.value = window.modelsDir + "/loras";
 
     await scanLoras();

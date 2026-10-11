@@ -26,10 +26,10 @@ TEXT_EXT = {".py", ".js", ".css", ".html", ".md", ".sh", ".json",
 EXCLUDE_PREFIXES = ("libs/", "tools/audit.py")
 
 ITALIAN = re.compile(
-    r"\b(della|delle|degli|dello|dalla|dalle|nella|negli|che|non|con|per|una|uno|"
-    r"sono|questo|questa|questi|queste|immagine|immagini|errore|finestra|cartella|"
-    r"pulsante|senza|anche|solo|quando|perch[ée]|gi[àa]|pi[uù]|pu[oò]|deve|devi|viene|"
-    r"stato|fare|tra|fra|molto|dal|del|dei|gli|ancora|adesso|prima|dopo|tutti|tutte)\b",
+    r"\b(della|delle|degli|dello|dalla|dalle|nella|negli|perch[ée]|poich[ée]|gi[àa]|pi[uù]|"
+    r"pu[oò]|deve|viene|senza|quando|immagine|immagini|errore|finestra|cartella|"
+    r"pulsante|questo|questa|questi|queste|tutti|tutte|ancora|adesso|opzione|opzioni|"
+    r"modalit[àa]|sugli|sulla|dopo|prima|molto|proprio|solo se|non appena)\b",
     re.IGNORECASE)
 ACCENT = re.compile(r"[àèéìòùÀÈÉÌÒÙ]")
 PATHY = re.compile(r"(/run/media/[^\s\"'`]+|/home/[^\s\"'`]+|/workspace[^\s\"'`]*|"

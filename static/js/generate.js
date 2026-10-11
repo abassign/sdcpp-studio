@@ -1340,7 +1340,7 @@ function sendPromptToARF(sourceElementId) {
         if (window.updateStatusGen) {
             window.updateStatusGen('🪄 Prompt' + (refUrl ? ' + init image' : '') + ' inviati ad Agent Refine', 'success');
         }
-        if (window.log) window.log('🪄 I2T → Agent Refine: goal impostato' + (refUrl ? ' + immagine di riferimento' : ''), false, true);
+        if (window.log) window.log('🪄 I2T -> Agent Refine: goal set' + (refUrl ? ' + reference image' : ''), false, true);
     }, 250);
 }
 window.sendPromptToARF = sendPromptToARF;

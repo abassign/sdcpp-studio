@@ -109,7 +109,7 @@ function setOriginalRatio() {
         if (window.uploadedImageDims && window.uploadedImageDims.w > 0) {
             applyDims(window.uploadedImageDims.w, window.uploadedImageDims.h);
         } else {
-            alert("Carica prima un'immagine Init per usare 🔒 Orig.");
+            alert("Load an Init image first to use 🔒 Orig.");
         }
         return;
     }
@@ -120,7 +120,7 @@ function setOriginalRatio() {
         if (window.uploadedImageDims && window.uploadedImageDims.w > 0) {
             applyDims(window.uploadedImageDims.w, window.uploadedImageDims.h);
         } else {
-            alert("Impossibile leggere le dimensioni dell'immagine Init.");
+            alert("Could not read the Init image dimensions.");
         }
     };
     img.src = refUrl;

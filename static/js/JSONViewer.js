@@ -152,7 +152,7 @@ function initJSONViewer() {
             if (!dialog.open) dialog.show(); // Modeless
         } catch (e) {
             console.error("JSONViewer Error:", e);
-            alert("Errore nel caricamento dei dati JSON.");
+            alert("Error loading JSON data.");
         }
     };
 

@@ -61,7 +61,7 @@ def detect_model_role(path: str, category: str, file_type: str = None) -> str:
         # If it is a directory with no model indicators, use the category
         return category
     
-    # È un file singolo
+    # It is a single file
     basename = os.path.basename(path).lower()
     
     # File GGUF sono sempre checkpoint

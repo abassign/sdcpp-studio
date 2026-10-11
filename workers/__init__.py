@@ -1,1 +1,1 @@
-# Workers Module - Generazione immagini
+# Workers Module - Image generation

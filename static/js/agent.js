@@ -365,8 +365,8 @@
             // Make the automatic run-reference restore explicit: otherwise the
             // extra slots look like images the user never added.
             if (wanted.length) {
-                setStatus('🖼️ ' + wanted.length + ' immagini ripristinate dal run negli slot reference', 'info');
-                elog('🖼️ restoreAgentRefImages: ' + wanted.length + ' immagini caricate dal run', false);
+                setStatus('🖼️ ' + wanted.length + ' images restored from the run into the reference slots', 'info');
+                elog('🖼️ restoreAgentRefImages: ' + wanted.length + ' images loaded from the run', false);
             }
             const hp = $('agent-image-path');
             if (hp) hp.value = anchorUrl || (wanted[0] && wanted[0].path) || '';

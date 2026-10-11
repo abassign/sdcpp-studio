@@ -323,7 +323,7 @@ def run_t2i_cpp(prompt: str, width: int, height: int, steps: int, guidance: floa
         if llm_krea and os.path.exists(llm_krea):
             print(f"--> [T2I CPP] Using LLM for {KREA_BASE_LABEL[krea_base]}: {llm_krea}")
             cmd.extend(["--llm", llm_krea, "--clip-on-cpu"])
-            # LLM safetensors (HF bf16, ~8.8GB) usano piu' ram/VRAM del Q4 GGUF:
+            # LLM safetensors (HF bf16, ~8.8GB) use more RAM/VRAM than the Q4 GGUF:
             # decodifica VAE su CPU per evitare OOM sullo split VRAM col diffusion model.
             if llm_krea.lower().endswith(".safetensors"):
                 print("--> [T2I CPP] safetensors LLM detected: forcing VAE decode on CPU to save VRAM")
