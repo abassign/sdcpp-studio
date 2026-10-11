@@ -26,6 +26,8 @@ x-common: &common
     - "${OUTPUTS_DIR:-./outputs}:/app/outputs"
     - "${HF_CACHE_DIR:-./hf_cache}:/root/.cache/huggingface"
     - "./:/app"
+    - "./sdcpp_src:/app/sdcpp_src:ro"
+    - "./llama.cpp:/app/llama.cpp:ro"
 
 services:
   # --- AMD ROCm ---
@@ -34,7 +36,7 @@ services:
     build:
       context: .
       args:
-        VARIANT: rocm
+        GPU_FLAVOR: rocm
         AMDGPU_TARGETS: "${AMDGPU_TARGETS:-gfx1100}"
     image: sdcpp-studio:rocm
     devices:
@@ -52,7 +54,8 @@ services:
     build:
       context: .
       args:
-        VARIANT: cuda
+        GPU_FLAVOR: cuda
+        BASE_IMAGE: "nvidia/cuda:12.4.1-cudnn-devel-ubuntu24.04"
     image: sdcpp-studio:cuda
     deploy:
       resources:

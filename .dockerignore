@@ -1,0 +1,22 @@
+# Keep the build context small (and safe): no secrets, no data, no git.
+.git
+**/.git
+**/__pycache__
+**/*.pyc
+
+# runtime data (mounted volumes)
+models/
+outputs/
+hf_cache/
+data/
+logs/
+
+# reference copies
+*.orig
+*.rej
+
+# docs/plans are not needed inside the image
+docs/
+plans/
+*.md
+!README.md

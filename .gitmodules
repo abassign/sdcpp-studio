@@ -1,3 +1,6 @@
 [submodule "sdcpp_src"]
 	path = sdcpp_src
 	url = https://github.com/leejet/stable-diffusion.cpp
+[submodule "llama.cpp"]
+	path = llama.cpp
+	url = https://github.com/ggml-org/llama.cpp
