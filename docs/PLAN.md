@@ -17,7 +17,7 @@ Status: **PLANNING** - no code moved yet. Grounded on `docs/AUDIT.md`.
 | 1 | GPU targets | **ROCm + NVIDIA/CUDA** (as already set up); CPU best-effort |
 | 2 | Language | **English only** (no i18n for 1.0) |
 | 3 | Publish target | GitHub **`abassign/sdcpp-studio`** (new repo) |
-| 4 | Repo strategy | **new repo**; `pclab01` stays as the current backup, later it will sync **from the new GitHub repo** |
+| 4 | Repo strategy | **new repo**; a backup host stays as the current backup, later it will sync **from the new GitHub repo** |
 | 5 | License | MIT for *our* code; model weights keep their own licenses |
 
 ## 0b. Target repo layout
@@ -49,7 +49,7 @@ we keep the same layout so the transition is a copy + cleanup, not a rewrite.
 
 ## 1. Baseline & skeleton
 
-- Tag/backup the current working tree; keep `pclab01` as the live copy.
+- Tag/backup the current working tree; keep a backup host as the live copy.
 - Create a **new repo** `sdcpp-studio` with: `.gitignore`, `LICENSE` (MIT),
   `README`, `CONTRIBUTING`, `docs/`, CI (lint + build smoke).
 - **Do not translate in place**: structure first, text second.
@@ -78,7 +78,7 @@ Audit: `sdcpp_src/` and `llama.cpp/` have **0 tracked files** today.
 
 ## 4. Config & cleanup
 
-- Replace hardcoded paths: `/app`, `/run/media/abassign`, `/workspace`
+- Replace hardcoded paths: `/app`, `/path/to/docker`, `/workspace`
   (audit: `autoconfig.py`, `workers/*_cpp.py` comments, `logs/`, `plans/`).
 - `.env.example` for tokens (HF/Civitai). `secrets.json` stays gitignored.
 - Remove untracked legacy: `.backup_2026-08-31/`, `.cleanup_backup/`,

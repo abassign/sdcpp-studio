@@ -55,3 +55,6 @@ dist/
 # --- reference copies / merges ---
 *.orig
 *.rej
+
+# generated, machine-specific
+/docs/AUDIT.md

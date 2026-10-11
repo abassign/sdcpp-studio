@@ -1,187 +1,169 @@
 # sdcpp-studio - model registry
 # -----------------------------------------------------------------------------
-# Define WHAT the app needs and let `go.sh setup` / `go.sh download <preset>`
+# Define WHAT the app needs and let `./go.sh setup` / `./go.sh download <preset>`
 # fetch it. Model WEIGHTS are never committed and never baked into the image:
 # they live in a mounted volume (MODELS_DIR).
 #
 # Schema (per entry):
 #   id:         stable key (also the target subfolder under MODELS_DIR)
 #   kind:       diffusion | vae | text_encoder | llm | lora
-#   repo:       Hugging Face repo id (owner/name)
-#   file:       file inside the repo (or a glob)
+#   repo:       Hugging Face repo id (owner/name)   <- TODO = not verified yet
+#   file:       file/glob inside the repo (allow_patterns)
 #   target:     subfolder under MODELS_DIR (checkpoints | vae | text_encoders | i2t | loras)
-#   size_gb:    approximate download size (for the pre-flight VRAM/disk check)
-#   sha256:     optional integrity check
-#   license:    model license (MUST be shown to the user; do not redistribute weights)
+#   size_gb:    approximate download size (disk pre-flight)
+#   license:    model license (shown to the user; weights are NOT redistributed)
+#   gated:      needs an HF token / license acceptance
 #   required_by:[preset ids]
-#   gated:      true if it needs an HF token / license acceptance
 #
-# VERIFY every repo/file/size before release. Values marked TODO must be filled.
+# Entries marked TODO have unverified repo/file values: fill them before release.
 # -----------------------------------------------------------------------------
 version: 1
 
 components:
 
-  # ----- diffusion checkpoints (GGUF / safetensors) -----
-  sd15-realistic:
-    kind: diffusion
-    repo: TODO            # e.g. a permissive SD1.5 realism checkpoint
-    file: "*.safetensors"
-    target: checkpoints
-    size_gb: ~2
-    license: CreativeML-OpenRAIL-M
-    required_by: [demo-min]
-
+  # ===== diffusion checkpoints (GGUF) =====
   z-image-turbo:
     kind: diffusion
-    repo: TODO            # Z-Image-Turbo GGUF
-    file: "*.gguf"
+    repo: leejet/Z-Image-Turbo-GGUF
+    file: "z_image_turbo-Q6_K.gguf"
     target: checkpoints
-    size_gb: ~7
-    license: TODO
+    size_gb: 4.9
+    license: see model card
     required_by: [default]
-
-  flux1-dev:
-    kind: diffusion
-    repo: unsloth/FLUX.1-dev-GGUF
-    file: "flux1-dev-Q4_K_S.gguf"
-    target: checkpoints
-    size_gb: ~7
-    license: FLUX.1-dev Non-Commercial
-    gated: true
-    required_by: [flux]
 
   ideogram4:
     kind: diffusion
     repo: leejet/ideogram-4-GGUF
     file: "ideogram4-Q4_0.gguf"
     target: checkpoints
-    size_gb: ~5.6
+    size_gb: 5.3
     license: Ideogram License
     required_by: [ideogram4]
+
   ideogram4-uncond:
     kind: diffusion
     repo: leejet/ideogram-4-GGUF
     file: "ideogram4_uncond-Q4_0.gguf"
     target: checkpoints
-    size_gb: ~5.6
+    size_gb: 5.3
     license: Ideogram License
     required_by: [ideogram4]
 
-  qwen-image-edit:
+  qwen-image-2.1:
     kind: diffusion
-    repo: city96/Qwen2.5-VL-7B-Image-Edit-GGUF   # verify
-    file: "*.gguf"
+    repo: leejet/Qwen-Image-2.1-GGUF
+    file: "qwen_image_2.1-Q6_K.gguf"
     target: checkpoints
-    size_gb: ~12
+    size_gb: 5.6
     license: Apache-2.0
-    required_by: [qwen-edit]
+    required_by: [qwen21]
 
-  # ----- VAE -----
-  vae-sd15:
-    kind: vae
-    repo: TODO
-    file: "vae-ft-mse-840000-ema-pruned.safetensors"
-    target: vae
-    size_gb: ~0.3
-    license: CreativeML-OpenRAIL-M
-    required_by: [demo-min]
+  flux1-dev:
+    kind: diffusion
+    repo: unsloth/FLUX.1-dev-GGUF
+    file: "flux1-dev-Q4_K_S.gguf"
+    target: checkpoints
+    size_gb: 7
+    license: FLUX.1 [dev] Non-Commercial
+    gated: true
+    required_by: [flux]
+
+  # ===== VAE =====
   vae-flux:
     kind: vae
     repo: black-forest-labs/FLUX.1-dev
     file: "ae.safetensors"
     target: vae
-    size_gb: ~0.3
-    license: FLUX.1-dev Non-Commercial
+    size_gb: 0.32
+    license: FLUX.1 [dev] Non-Commercial
     gated: true
     required_by: [flux]
+
   vae-flux2:
     kind: vae
-    repo: TODO            # FLUX.2 VAE (also used by Ideogram 4)
+    repo: TODO            # FLUX.2 VAE (used by Ideogram 4 too)
     file: "flux2-vae.safetensors"
     target: vae
-    size_gb: ~0.34
+    size_gb: 0.32
     license: TODO
     required_by: [ideogram4]
+
   vae-zimage:
     kind: vae
-    repo: TODO
+    repo: TODO            # zImage_vae.safetensors
     file: "zImage_vae.safetensors"
     target: vae
-    size_gb: ~0.34
+    size_gb: 0.32
     license: TODO
     required_by: [default]
 
-  # ----- text encoders -----
+  vae-qwen21:
+    kind: vae
+    repo: TODO            # qwen_image_2.1_vae_bf16.safetensors
+    file: "*vae*.safetensors"
+    target: vae
+    size_gb: 0.64
+    license: Apache-2.0
+    required_by: [qwen21]
+
+  # ===== text encoders =====
   clip-l:
     kind: text_encoder
     repo: comfyanonymous/flux_text_encoders
     file: "clip_l.safetensors"
     target: text_encoders
-    size_gb: ~0.25
+    size_gb: 0.25
     license: see repo
     required_by: [flux]
+
   t5xxl:
     kind: text_encoder
     repo: comfyanonymous/flux_text_encoders
     file: "t5xxl_fp16.safetensors"
     target: text_encoders
-    size_gb: ~9.8
+    size_gb: 9.1
     license: Apache-2.0
     required_by: [flux]
+
+  qwen-zimage-encoder:
+    kind: text_encoder
+    repo: TODO            # qwen_zimage_text_encoder.gguf
+    file: "qwen*zimage*text*encoder*.gguf"
+    target: text_encoders
+    size_gb: 7.5
+    license: TODO
+    required_by: [default]
+
   qwen3-vl-8b:
     kind: text_encoder
-    repo: TODO            # Qwen3-VL-8B-Instruct GGUF (used by Ideogram4)
+    repo: TODO            # qwen3-vl-8b-instruct-q4_k_m.gguf (Ideogram 4 encoder)
     file: "qwen3-vl-8b-instruct-q4_k_m.gguf"
     target: text_encoders
-    size_gb: ~5
+    size_gb: 4.7
     license: Apache-2.0
     required_by: [ideogram4]
 
-  # ----- LLM / VLM (I2T, critic, translator) -----
+  # ===== LLM / VLM (I2T, critic, translator) =====
   qwen3vl-4b-abliterated:
     kind: llm
-    repo: mradermacher/Huihui-Qwen3-VL-4B-Instruct-abliterated-GGUF   # verify
-    file: "*.Q4_K_M.gguf"
+    repo: TODO            # GGUF conversion, e.g. mradermacher/Huihui-Qwen3-VL-4B-Instruct-abliterated-GGUF
+    file: "*Q4_K_M.gguf"
     target: i2t
-    size_gb: ~2.5
-    license: Apache-2.0        # abliterated derivative - check terms
-    required_by: [demo-min, default]
-  qwen3vl-8b:
-    kind: llm
-    repo: TODO
-    file: "*.gguf"
-    target: i2t
-    size_gb: ~6
-    license: Apache-2.0
-    required_by: [default]
-  qwen3.6-35b-uncensored:
-    kind: llm
-    repo: TODO            # Qwen3.6-35B-A3B-Uncensored (HauhauCS)
-    file: "*.gguf"
-    target: i2t
-    size_gb: ~18
-    license: TODO
-    required_by: [uncensored]
+    size_gb: 2.3
+    license: Apache-2.0 (abliterated derivative - check terms)
+    required_by: [default, flux, ideogram4, qwen21]
 
 presets:
-  # Small set to try the app quickly (few GB).
-  demo-min:
-    description: "SD1.5 realism + a small vision LLM (I2T/critic/translator)."
-    components: [sd15-realistic, vae-sd15, qwen3vl-4b-abliterated]
-  # Sensible default for a modern AMD GPU (24GB).
+  # Modern default on a 24 GB AMD/NVIDIA GPU: Z-Image-Turbo + a small VLM.
   default:
-    description: "Z-Image-Turbo + Qwen3-VL-8B."
-    components: [z-image-turbo, vae-zimage, qwen3vl-8b]
+    description: "Z-Image-Turbo + Qwen3-VL-4B (I2T/critic/translator)."
+    components: [z-image-turbo, vae-zimage, qwen-zimage-encoder, qwen3vl-4b-abliterated]
   flux:
     description: "FLUX.1-dev (T2I + inpaint via --mask)."
     components: [flux1-dev, vae-flux, clip-l, t5xxl, qwen3vl-4b-abliterated]
   ideogram4:
     description: "Ideogram 4 (best text rendering) + Qwen3-VL encoder."
     components: [ideogram4, ideogram4-uncond, vae-flux2, qwen3-vl-8b, qwen3vl-4b-abliterated]
-  qwen-edit:
-    description: "Qwen-Image-Edit (instruction edit)."
-    components: [qwen-image-edit, qwen3vl-4b-abliterated]
-  uncensored:
-    description: "Uncensored critic/translator + a diffusion preset you already have."
-    components: [qwen3.6-35b-uncensored]
+  qwen21:
+    description: "Qwen-Image 2.1."
+    components: [qwen-image-2.1, vae-qwen21, qwen3vl-4b-abliterated]
