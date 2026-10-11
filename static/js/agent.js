@@ -421,12 +421,12 @@
             const res = await fetch('/api/config/i2t-models');
             const data = await res.json();
             const keep = iSel.value;
-            iSel.innerHTML = '<option value="">Auto (nessuno \u2014 usa il Critic)</option>';
+            iSel.innerHTML = '<option value="">Auto (none \u2014 uses the Critic)</option>';
             (data.models || []).forEach(m => {
                 const o = document.createElement('option');
                 o.value = m.path;
                 const vis = m.vision !== false;
-                o.innerText = (vis ? '' : '\u26a0\ufe0f ') + m.name + (vis ? '' : ' \u2014 senza mmproj');
+                o.innerText = (vis ? '' : '\u26a0\ufe0f ') + m.name + (vis ? '' : ' \u2014 no mmproj');
                 if (!vis) o.disabled = true;
                 iSel.appendChild(o);
             });
@@ -690,7 +690,7 @@
         if (!cri.vision && cri.reason) msgs.push('🖼️ ' + cri.reason);
         if (!gen.edit && gen.reason) msgs.push('✏️ ' + gen.reason);
         if (gen.edit && gen.edit_only && !_hasAgentRefImage())
-            msgs.push('✏️ Questo generatore è <b>solo-edit</b>: serve un\'immagine Init, altrimenti la generazione fallisce.');
+            msgs.push('✏️ This generator is <b>edit-only</b>: it needs an Init image, otherwise generation fails.');
         if (warn) {
             if (msgs.length) { warn.innerHTML = msgs.join('<br>'); warn.classList.remove('hidden'); }
             else { warn.innerHTML = ''; warn.classList.add('hidden'); }
@@ -766,7 +766,7 @@
         }
 
         const text = current.trim();
-        if (!text) { setStatus('Scrivi prima un goal da tradurre.', 'error'); return; }
+        if (!text) { setStatus('Write a goal to translate first.', 'error'); return; }
 
         // Model: prefer the interpreter, else the critic (the backend falls
         // back to the default critic when empty).
@@ -791,12 +791,12 @@
             ta.value = en;
             if (btn) btn.textContent = '↩︎ Ripristina (IT)';
             if (st) st.textContent = 'EN ✓' + (data.model ? ' (' + data.model + ')' : '');
-            setStatus('🎯 Goal tradotto in inglese', 'success');
-            elog('🌐 Goal tradotto (IT→EN) con ' + (data.model || 'modello locale'), false);
+            setStatus('🎯 Goal translated to English', 'success');
+            elog('🌐 Goal translated (IT→EN) with ' + (data.model || 'local model'), false);
         } catch (e) {
             if (st) st.textContent = '';
-            setStatus('Traduzione fallita: ' + e.message, 'error');
-            elog('❌ Traduzione goal fallita: ' + e.message, true);
+            setStatus('Translation failed: ' + e.message, 'error');
+            elog('❌ Goal translation failed: ' + e.message, true);
             if (btn) btn.textContent = oldLabel || '🌐 Traduci in English';
         } finally {
             if (btn) btn.disabled = false;
