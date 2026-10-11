@@ -21,6 +21,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEXT_EXT = {".py", ".js", ".css", ".html", ".md", ".sh", ".json",
             ".yml", ".yaml", ".txt", ".gbnf", ".env", ".rules", ".nvidia"}
 
+# Paths that must NOT be counted: vendored third-party code and this tool's own
+# Italian word list (which would otherwise self-match).
+EXCLUDE_PREFIXES = ("libs/", "tools/audit.py")
+
 ITALIAN = re.compile(
     r"\b(della|delle|degli|dello|dalla|dalle|nella|negli|che|non|con|per|una|uno|"
     r"sono|questo|questa|questi|queste|immagine|immagini|errore|finestra|cartella|"
@@ -69,6 +73,8 @@ def main():
     paths = defaultdict(set)
     secrets = []
     for f in files:
+        if f.startswith(EXCLUDE_PREFIXES):
+            continue
         if os.path.splitext(f)[1].lower() not in TEXT_EXT:
             continue
         txt = read(os.path.join(ROOT, f))

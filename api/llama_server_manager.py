@@ -431,7 +431,7 @@ class LlamaServerManager:
             # Single image I2T mode - just analyze one image
             sys_prompt = model_params.get("system_prompt",
                                            "Sei un assistente utile e conciso. "
-                                           "Analizza le immagini quando fornite.")
+                                           "Analyze the images when provided.")
 
         messages = []
         if system_prompt or sys_prompt:
@@ -608,7 +608,7 @@ class LlamaServerManager:
         else:
             sys_prompt = model_params.get("system_prompt",
                                            "Sei un assistente utile e conciso. "
-                                           "Analizza le immagini quando fornite.")
+                                           "Analyze the images when provided.")
 
         # Build chat_template_kwargs
         if "enable_thinking" in model_params:

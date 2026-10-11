@@ -25,16 +25,16 @@ except ImportError:
 
 def detect_model_role(path: str, category: str, file_type: str = None) -> str:
     """
-    Rileva il ruolo del modello basandosi su:
-    - Posizione nella directory (text_encoders, loras)
-    - Contenuto della cartella (model_index.json = Diffusers)
-    - Estensione file (.gguf, .safetensors)
-    - Nome file
+    Detect the model role based on:
+    - Position in the directory (text_encoders, loras)
+    - Folder content (model_index.json = Diffusers)
+    - File extension (.gguf, .safetensors)
+    - File name
     
     Args:
-        path: Percorso del modello (file o directory)
-        category: Categoria del modello (checkpoint, i2t, lora)
-        file_type: Tipo di file se noto (es. 'gguf', 'diffusers', 'custom_file')
+        path: Model path (file or directory)
+        category: Model category (checkpoint, i2t, lora)
+        file_type: File type if known (e.g. 'gguf', 'diffusers', 'custom_file')
     
     Returns:
         'text_encoder' | 'lora' | 'checkpoint'

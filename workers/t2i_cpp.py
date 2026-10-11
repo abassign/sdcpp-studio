@@ -1,5 +1,5 @@
 """
-Workers T2I CPP - Text-to-Image con stable-diffusion.cpp
+T2I CPP worker - Text-to-Image with stable-diffusion.cpp
 """
 import os
 import sys

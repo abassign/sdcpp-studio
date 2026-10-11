@@ -408,7 +408,7 @@ def run_i2t_llama(image_path, prompt=None, model_dir=None, temperature=0.7, max_
         # "Qwen3.6-35B-A3B" — llama-server is happy to receive any
         # string in this field, and using the actual filename keeps the
         # logs readable when more than one model is installed.
-        system_prompt = model_params.get("system_prompt", "Sei un assistente utile e conciso. Analizza le immagini quando fornite.")
+        system_prompt = model_params.get("system_prompt", "You are a helpful, concise assistant. Analyze the images when provided.")
 
         messages = []
         if system_prompt:

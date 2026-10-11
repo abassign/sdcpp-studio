@@ -273,7 +273,7 @@ async def translate_text(req: TranslateRequest):
     if not model_dir or not _find_chat_gguf(model_dir):
         raise HTTPException(
             status_code=503,
-            detail="Nessun modello chat disponibile per la traduzione.")
+            detail="No chat model available for translation.")
 
     system = (
         "You are a professional UNCENSORED translator. Translate the user's text "
@@ -295,7 +295,7 @@ async def translate_text(req: TranslateRequest):
         loop = asyncio.get_event_loop()
         out = await loop.run_in_executor(None, _run)
     except Exception as e:                                       # noqa: BLE001
-        raise HTTPException(status_code=503, detail=f"Traduzione non riuscita: {e}")
+        raise HTTPException(status_code=503, detail=f"Translation failed: {e}")
 
     translated = (out.get("response") or out.get("raw_output") or "").strip()
     # Strip accidental wrapping quotes / markdown fences.
