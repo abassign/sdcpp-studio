@@ -8,14 +8,18 @@
 #
 # The engines (stable-diffusion.cpp + llama.cpp) are built from the git
 # submodules. Model weights are NEVER baked in: they are mounted (MODELS_DIR).
+#
+# Stage graph:  toolchain -> {engines, base} -> app
+# The engines only depend on `toolchain`, so changing Python deps (base) does
+# NOT trigger a slow C++ rebuild.
 # ---------------------------------------------------------------------------
 
 ARG BASE_IMAGE=rocm/pytorch:rocm7.2_ubuntu24.04_py3.12_pytorch_release_2.7.1
 
 # ===========================================================================
-# base: python + system deps
+# toolchain: system deps common to engines and app
 # ===========================================================================
-FROM ${BASE_IMAGE} AS base
+FROM ${BASE_IMAGE} AS toolchain
 
 ARG GPU_FLAVOR=rocm
 ARG DEBIAN_FRONTEND=noninteractive
@@ -39,21 +43,10 @@ RUN if [ "$GPU_FLAVOR" = "rocm" ]; then \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 
-RUN python3 -m pip install --upgrade pip setuptools wheel && \
-    python3 -m pip install "numpy<2.0" \
-        accelerate sentencepiece tiktoken protobuf timm einops \
-        opencv-python-headless pillow regex requests tokenizers \
-        filelock safetensors pyyaml huggingface_hub
-
-# torch: comes with the ROCm base image; install it explicitly on CUDA
-RUN if [ "$GPU_FLAVOR" = "cuda" ]; then \
-        python3 -m pip install torch --index-url https://download.pytorch.org/whl/cu124; \
-    fi
-
 # ===========================================================================
 # engines: build stable-diffusion.cpp (+Krea2 patch) and llama.cpp
 # ===========================================================================
-FROM base AS engines
+FROM toolchain AS engines
 
 ARG GPU_FLAVOR=rocm
 ARG AMDGPU_TARGETS=gfx1100
@@ -85,6 +78,25 @@ RUN cd /app/llama.cpp && mkdir -p build && cd build && \
     cmake --build . -j"$(nproc)" --target llama-cli llama-server llama-mtmd-cli && \
     cp bin/llama-cli bin/llama-server bin/llama-mtmd-cli /usr/local/bin/ && \
     find . -name "libggml*.so*" -exec cp {} /usr/local/lib/ \;
+
+# ===========================================================================
+# base: python deps (web app + huggingface tooling)
+# ===========================================================================
+FROM toolchain AS base
+
+ARG GPU_FLAVOR=rocm
+
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install "numpy<2.0" \
+        fastapi "uvicorn[standard]" python-multipart \
+        accelerate sentencepiece tiktoken protobuf timm einops \
+        opencv-python-headless pillow regex requests tokenizers \
+        filelock safetensors pyyaml huggingface_hub
+
+# torch: comes with the ROCm base image; install it explicitly on CUDA
+RUN if [ "$GPU_FLAVOR" = "cuda" ]; then \
+        python3 -m pip install torch --index-url https://download.pytorch.org/whl/cu124; \
+    fi
 
 # ===========================================================================
 # app: runtime image (no sources, no weights)

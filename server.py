@@ -658,4 +658,7 @@ if __name__ == "__main__":
     import uvicorn
     # Read port from environment variable, default 7860
     port = int(os.getenv("PORT", 7860))
-    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=True)
+    # Auto-reload is a DEV-only convenience and misbehaves inside containers;
+    # enable it explicitly with RELOAD=1.
+    reload = os.getenv("RELOAD", "").lower() in ("1", "true", "yes")
+    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=reload)

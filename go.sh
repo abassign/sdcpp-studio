@@ -19,6 +19,19 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${APP_DIR:-$SCRIPT_DIR}"
+
+# Optional .env defaults (do NOT override variables already set in the env)
+if [ -f "$APP_DIR/.env" ]; then
+    while IFS='=' read -r _k _v; do
+        case "$_k" in ''|\#*) continue ;; esac
+        _k="$(printf '%s' "$_k" | tr -d '[:space:]')"
+        [ -z "$_k" ] && continue
+        if [ -z "${!_k:-}" ]; then
+            _v="${_v%\"}"; _v="${_v#\"}"   # strip surrounding quotes
+            export "$_k=$_v"
+        fi
+    done < "$APP_DIR/.env"
+fi
 PARENT_DIR="$(dirname "$APP_DIR")"
 IMAGE_NAME="${IMAGE_NAME:-sdcpp-studio}"
 PORT="${PORT:-8000}"
