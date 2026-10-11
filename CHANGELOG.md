@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `tools/sync.sh`: update the remote mirror (pclab01) with one command.
 - Show the app version (`VERSION` file) in the header via `GET /api/version`.
 
 ## [0.1.0] - 2026-10-11
